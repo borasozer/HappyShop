@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,13 +65,25 @@ public class CustomerModel {
 
     void addToTrolley(){
         if(theProduct!= null){
-
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            // Week 2: Check if product already exists in trolley to merge quantities
+            boolean productFound = false;
+            for (Product existingProduct : trolley) {
+                // Week 2: If same product ID found, increment quantity instead of adding duplicate
+                if (existingProduct.getProductId().equals(theProduct.getProductId())) {
+                    existingProduct.setOrderedQuantity(existingProduct.getOrderedQuantity() + 1);
+                    productFound = true;
+                    break;
+                }
+            }
+            
+            // Week 2: Add new product only if not already in trolley
+            if (!productFound) {
+                trolley.add(theProduct);
+            }
+            
+            // Week 2: Sort trolley by product ID to maintain organized display
+            Collections.sort(trolley);
+            
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
