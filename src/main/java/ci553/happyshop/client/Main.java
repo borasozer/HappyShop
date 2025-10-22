@@ -81,9 +81,10 @@ public class Main extends Application {
         cusModel.databaseRW = databaseRW;
         cusView.start(new Stage());
 
-        //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
-        //removeProductNotifier.cusView = cusView;
-        //cusModel.removeProductNotifier = removeProductNotifier;
+        // Week 3: Initialize RemoveProductNotifier for stock shortage handling
+        RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
+        removeProductNotifier.cusView = cusView;
+        cusModel.removeProductNotifier = removeProductNotifier;
     }
 
     /** The picker GUI, - for staff to pack customer's order,

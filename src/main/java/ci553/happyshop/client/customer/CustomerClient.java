@@ -37,8 +37,9 @@ public class CustomerClient extends Application {
         cusModel.databaseRW = databaseRW;
         cusView.start(window);
 
-        //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
-        //removeProductNotifier.cusView = cusView;
-        //cusModel.removeProductNotifier = removeProductNotifier;
+        // Week 3: Initialize RemoveProductNotifier for stock shortage handling
+        RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
+        removeProductNotifier.cusView = cusView;
+        cusModel.removeProductNotifier = removeProductNotifier;
     }
 }

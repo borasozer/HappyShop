@@ -25,6 +25,7 @@ public class CustomerModel {
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
+    public RemoveProductNotifier removeProductNotifier; // Week 3: Notifier for stock shortage alerts
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
@@ -78,7 +79,15 @@ public class CustomerModel {
             
             // Week 2: Add new product only if not already in trolley
             if (!productFound) {
-                trolley.add(theProduct);
+                // Week 2: Create a copy to avoid reference issues when theProduct is reused
+                Product productCopy = new Product(
+                    theProduct.getProductId(),
+                    theProduct.getProductDescription(),
+                    theProduct.getProductImageName(),
+                    theProduct.getUnitPrice(),
+                    theProduct.getStockQuantity()
+                );
+                trolley.add(productCopy);
             }
             
             // Week 2: Sort trolley by product ID to maintain organized display
@@ -116,6 +125,10 @@ public class CustomerModel {
                         theOrder.getOrderedDateTime(),
                         ProductListFormatter.buildString(theOrder.getProductList())
                 );
+                
+                // Week 3: Close notifier window on successful checkout
+                removeProductNotifier.closeNotifierWindow();
+                
                 System.out.println(displayTaReceipt);
             }
             else{ // Some products have insufficient stock — build an error message to inform the customer
@@ -128,14 +141,19 @@ public class CustomerModel {
                 }
                 theProduct=null;
 
-                //TODO
-                // Add the following logic here:
-                // 1. Remove products with insufficient stock from the trolley.
-                // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
-                //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
-                //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
-                displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
-                System.out.println("stock is not enough");
+                // Week 3: Remove products with insufficient stock from trolley by product ID
+                // Cannot use removeAll() as Product objects have different references and stock quantities
+                for(Product insufficientProd : insufficientProducts){
+                    trolley.removeIf(trolleyProd -> trolleyProd.getProductId().equals(insufficientProd.getProductId()));
+                }
+                
+                // Week 3: Update trolley display after removal
+                displayTaTrolley = trolley.isEmpty() ? "" : ProductListFormatter.buildString(trolley);
+                
+                // Week 3: Show notification window with removed products information
+                removeProductNotifier.showRemovalMsg(errorMsg.toString());
+                
+                System.out.println("Insufficient stock: products removed from trolley");
             }
         }
         else{
@@ -158,8 +176,11 @@ public class CustomerModel {
                 existing.setOrderedQuantity(existing.getOrderedQuantity() + p.getOrderedQuantity());
             } else {
                 // Make a shallow copy to avoid modifying the original
-                grouped.put(id,new Product(p.getProductId(),p.getProductDescription(),
-                        p.getProductImageName(),p.getUnitPrice(),p.getStockQuantity()));
+                Product newProduct = new Product(p.getProductId(), p.getProductDescription(),
+                        p.getProductImageName(), p.getUnitPrice(), p.getStockQuantity());
+                // Week 3: Set ordered quantity from original to preserve accurate count
+                newProduct.setOrderedQuantity(p.getOrderedQuantity());
+                grouped.put(id, newProduct);
             }
         }
         return new ArrayList<>(grouped.values());
@@ -168,6 +189,12 @@ public class CustomerModel {
     void cancel(){
         trolley.clear();
         displayTaTrolley="";
+        theProduct = null; // Week 2: Clear current product reference to prevent stale data
+        displayLaSearchResult = "Please type ProductID"; // Week 2: Clear search result display
+        
+        // Week 3: Close notifier window when trolley is cancelled
+        removeProductNotifier.closeNotifierWindow();
+        
         updateView();
     }
     void closeReceipt(){
