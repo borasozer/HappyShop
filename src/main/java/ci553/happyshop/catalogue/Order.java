@@ -37,6 +37,8 @@ public class Order {
     private String progressingDateTime="";
     private String collectedDateTime="";
     private ArrayList<Product> productList = new ArrayList<>(); //Trolley
+    // Week 3: Enum for type-safe payment method (future feature)
+    private PaymentMethod paymentMethod = PaymentMethod.CASH; // Default payment method
 
     // Constructor used by OrderHub to create a new order for a customer.
     // Initializes the order with an ID, state, order date/time, and a list of ordered products.
@@ -54,8 +56,14 @@ public class Order {
     public ArrayList<Product> getProductList() {
         return productList;
     }
+    // Week 3: Getter for enum-based payment method
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
 
     public void setState(OrderState state) { this.state = state; }
+    // Week 3: Setter for enum-based payment method with validation
+    public void setPaymentMethod(PaymentMethod paymentMethod) { 
+        this.paymentMethod = paymentMethod; 
+    }
 
     /**
      * order details written to file, used by OrderHub

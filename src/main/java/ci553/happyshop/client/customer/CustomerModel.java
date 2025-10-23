@@ -21,8 +21,13 @@ import java.util.Map;
  * You can either directly modify the CustomerModel class to implement the required tasks,
  * or create a subclass of CustomerModel and override specific methods where appropriate.
  */
+/**
+ * Week 3: Uses DatabaseRW interface for database operations (not concrete implementation)
+ * This demonstrates polymorphism and dependency injection, allowing flexible database implementations
+ */
 public class CustomerModel {
     public CustomerView cusView;
+    // Week 3: Interface reference for loose coupling and polymorphic behavior
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
     public RemoveProductNotifier removeProductNotifier; // Week 3: Notifier for stock shortage alerts

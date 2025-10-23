@@ -8,6 +8,7 @@ package ci553.happyshop.orderManagement;
  * - Progressing: A picker is currently preparing the order for customer.
  * - Collected: The order has been collected by customer from picker
  *
+ * Week 3: Enum provides type-safe constants and eliminates invalid state values
  * Using an enum provides a type-safe and readable way to represent a fixed set of constant values,
  * which improves code clarity, reduces errors from invalid strings or integers,
  * and makes state management more explicit and maintainable across the system.

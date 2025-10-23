@@ -9,9 +9,14 @@ package ci553.happyshop.catalogue;
  * - unitPrice: Price per single unit of the product.
  * - orderedQuantity: Quantity involved in a customer's order.
  * - stockQuantity: Quantity currently available in stock.
+ * 
+ * Week 3: Implements Comparable interface for natural ordering by product ID
  */
 
 public class Product implements Comparable<Product> {
+    // Week 3: Static member for tracking total Product instances created
+    private static int totalProductsCreated = 0;
+    
     private String proId;
     private String proDescription;
     private String proImageName;
@@ -33,6 +38,7 @@ public class Product implements Comparable<Product> {
         proImageName = image;
         unitPrice = aPrice;
         this.stockQuantity = stockQuantity;
+        totalProductsCreated++; // Week 3: Increment static counter
     }
 
     // a set of getter methods
@@ -42,21 +48,33 @@ public class Product implements Comparable<Product> {
     public double getUnitPrice() { return unitPrice;}
     public int getOrderedQuantity() { return orderedQuantity;}
     public int getStockQuantity() { return stockQuantity;}
+    
+    // Week 3: Static getter for total products created across all instances
+    public static int getTotalProductsCreated() { 
+        return totalProductsCreated; 
+    }
 
     //a setter method
     public void setOrderedQuantity(int orderedQuantity) {
         this.orderedQuantity = orderedQuantity;
     }
 
+    /**
+     * Week 3: @Override for proper polymorphism - implements Comparable interface
+     * Compares products by their product ID for natural ordering
+     */
     @Override
     public int compareTo(Product otherProduct) {
         // Compare by product ID or any other attribute you want to sort by
         return this.proId.compareTo(otherProduct.proId); // Sort by proId alphabetically (ascending);
     }
 
+    /**
+     * Week 3: @Override for proper polymorphism - overrides Object.toString()
+     * Creates a formatted string containing ID, price (with 2 decimal places), stock amount, and description
+     * Used in the Warehouse search page to display searched product information
+     */
     @Override
-    // Creates a formatted string containing ID, price (with 2 decimal places), stock amount, and description
-    // Used in the Warehouse search page to display searched product information
     public String toString() {
         String productInfo = String.format("Id: %s, £%.2f/uint, stock: %d \n%s",
                           proId, unitPrice,stockQuantity,proDescription);
