@@ -3,7 +3,6 @@ package ci553.happyshop.client.customer;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
-import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -24,6 +23,11 @@ import java.sql.SQLException;
  * 1. Search Page – Always visible, allowing customers to browse and search for products.
  * 2. the second page – display either the Trolley Page or the Receipt Page
  *    depending on the current context. Only one of these is shown at a time.
+ * 
+ * Week 5 Enhancements:
+ * - All button event handlers now use lambda expressions instead of single method reference
+ * - Added ComboBox for trolley sorting with lambda event handler
+ * - Lambda expressions demonstrate modern JavaFX event handling patterns
  */
 
 public class CustomerView  {
@@ -96,10 +100,26 @@ public class CustomerView  {
         Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
         Button btnSearch = new Button("Search");
         btnSearch.setStyle(UIStyle.buttonStyle);
-        btnSearch.setOnAction(this::buttonClicked);
+        // Week 5: Lambda expression for event handling - cleaner than method reference for simple actions
+        btnSearch.setOnAction(event -> {
+            try {
+                cusController.doAction("Search");
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+        });
+        
         Button btnAddToTrolley = new Button("Add to Trolley");
         btnAddToTrolley.setStyle(UIStyle.buttonStyle);
-        btnAddToTrolley.setOnAction(this::buttonClicked);
+        // Week 5: Lambda expression ensures trolley page is shown before adding
+        btnAddToTrolley.setOnAction(event -> {
+            try {
+                showTrolleyOrReceiptPage(vbTrolleyPage); // Ensure trolley page shows
+                cusController.doAction("Add to Trolley");
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+        });
         HBox hbBtns = new HBox(10, laPlaceHolder,btnSearch, btnAddToTrolley);
 
         ivProduct = new ImageView("imageHolder.jpg");
@@ -126,24 +146,92 @@ public class CustomerView  {
     private VBox CreateTrolleyPage() {
         Label laPageTitle = new Label("🛒🛒  Trolley 🛒🛒");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
+        
+        // Week 5: Add sorting options UI
+        // Reference: Week 5 - Anonymous Classes & Lambda Expressions in event handling
+        Label laSortLabel = new Label("Sort:");
+        laSortLabel.setStyle(UIStyle.labelStyle);
+        
+        ComboBox<String> sortOptions = new ComboBox<>();
+        sortOptions.getItems().addAll(
+            "Sort by ID", 
+            "Sort by Price (Low to High)", 
+            "Sort by Price (High to Low)",
+            "Sort by Name",
+            "Sort by Total Value"
+        );
+        sortOptions.setPromptText("Sort Options");
+        sortOptions.setStyle(UIStyle.comboBoxStyle);
+        
+        // Week 5: Anonymous class example - ChangeListener for debugging/logging
+        // Demonstrates traditional anonymous class approach before lambdas
+        sortOptions.valueProperty().addListener(new javafx.beans.value.ChangeListener<String>() {
+            @Override
+            public void changed(javafx.beans.value.ObservableValue<? extends String> observable, 
+                              String oldValue, String newValue) {
+                // Week 5: Anonymous class with explicit override - more verbose than lambda
+                System.out.println("Sort option changed from '" + oldValue + "' to '" + newValue + "'");
+            }
+        });
+        
+        // Week 5: Lambda expression for event handling (modern JavaFX style)
+        // Lambda implements EventHandler<ActionEvent> functional interface
+        // Compare: Lambda vs Anonymous class above - lambda is more concise
+        // Equivalent to: new EventHandler<ActionEvent>() { public void handle(ActionEvent event) {...} }
+        sortOptions.setOnAction(event -> {
+            String selected = sortOptions.getValue();
+            if (selected != null) {
+                try {
+                    // Week 5: Switch expression (modern Java feature)
+                    switch (selected) {
+                        case "Sort by ID" -> cusController.doAction("SORT_ID");
+                        case "Sort by Price (Low to High)" -> cusController.doAction("SORT_PRICE");
+                        case "Sort by Price (High to Low)" -> cusController.doAction("SORT_PRICE_DESC");
+                        case "Sort by Name" -> cusController.doAction("SORT_NAME");
+                        case "Sort by Total Value" -> cusController.doAction("SORT_TOTAL");
+                    }
+                } catch (SQLException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        HBox hbSortOptions = new HBox(10, laSortLabel, sortOptions);
+        hbSortOptions.setAlignment(Pos.CENTER_LEFT);
+        hbSortOptions.setStyle("-fx-padding: 5px;");
 
         taTrolley = new TextArea();
         taTrolley.setEditable(false);
-        taTrolley.setPrefSize(WIDTH/2, HEIGHT-50);
+        taTrolley.setPrefSize(WIDTH/2, HEIGHT-90); // Adjusted for sorting controls
 
         Button btnCancel = new Button("Cancel");
-        btnCancel.setOnAction(this::buttonClicked);
         btnCancel.setStyle(UIStyle.buttonStyle);
+        // Week 5: Lambda expression for cancel action
+        btnCancel.setOnAction(event -> {
+            try {
+                cusController.doAction("Cancel");
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+        });
 
         Button btnCheckout = new Button("Check Out");
-        btnCheckout.setOnAction(this::buttonClicked);
         btnCheckout.setStyle(UIStyle.buttonStyle);
+        // Week 5: Lambda expression for checkout action
+        btnCheckout.setOnAction(event -> {
+            try {
+                cusController.doAction("Check Out");
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+        });
 
         HBox hbBtns = new HBox(10, btnCancel,btnCheckout);
         hbBtns.setStyle("-fx-padding: 15px;");
         hbBtns.setAlignment(Pos.CENTER);
 
-        vbTrolleyPage = new VBox(15, laPageTitle, taTrolley, hbBtns);
+        // Week 5: Added sorting controls to trolley page
+        vbTrolleyPage = new VBox(15, laPageTitle, hbSortOptions, taTrolley, hbBtns);
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
         vbTrolleyPage.setStyle("-fx-padding: 15px;");
@@ -160,8 +248,15 @@ public class CustomerView  {
 
         Button btnCloseReceipt = new Button("OK & Close"); //btn for closing receipt and showing trolley page
         btnCloseReceipt.setStyle(UIStyle.buttonStyle);
-
-        btnCloseReceipt.setOnAction(this::buttonClicked);
+        // Week 5: Lambda expression for closing receipt and returning to trolley
+        btnCloseReceipt.setOnAction(event -> {
+            try {
+                showTrolleyOrReceiptPage(vbTrolleyPage);
+                cusController.doAction("OK & Close");
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+        });
 
         vbReceiptPage = new VBox(15, laPageTitle, taReceipt, btnCloseReceipt);
         vbReceiptPage.setPrefWidth(COLUMN_WIDTH);
@@ -171,24 +266,8 @@ public class CustomerView  {
     }
 
 
-    private void buttonClicked(ActionEvent event) {
-        try{
-            Button btn = (Button)event.getSource();
-            String action = btn.getText();
-            if(action.equals("Add to Trolley")){
-                showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
-            }
-            if(action.equals("OK & Close")){
-                showTrolleyOrReceiptPage(vbTrolleyPage);
-            }
-            cusController.doAction(action);
-        }
-        catch(SQLException e){
-            e.printStackTrace();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    // Week 5: Replaced buttonClicked() method with individual lambda expressions
+    // Each button now has its own lambda, making event handling more explicit and maintainable
 
 
     public void update(String imageName, String searchResult, String trolley, String receipt) {

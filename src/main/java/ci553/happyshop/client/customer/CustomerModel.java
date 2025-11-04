@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -202,6 +203,104 @@ public class CustomerModel {
         
         updateView();
     }
+    
+    // Week 5: Multiple sorting methods demonstrating lambda expressions and method references
+    // Reference: Week 5 Slides, Slide 31 - "Different ways to sort a List of objects"
+    
+    /**
+     * Sorts trolley by product ID (ascending) using method reference.
+     * This is the default/natural ordering already defined in Product.compareTo()
+     * 
+     * Week 5: Method reference - cleanest approach for simple sorting
+     */
+    void sortTrolleyById() {
+        // Week 5: Method reference - cleanest syntax when getter exists
+        // Equivalent lambda: (p1, p2) -> p1.getProductId().compareTo(p2.getProductId())
+        trolley.sort(Comparator.comparing(Product::getProductId));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
+    /**
+     * Sorts trolley by product price (ascending) using method reference.
+     * 
+     * Week 5: Comparator.comparingDouble for numeric sorting
+     */
+    void sortTrolleyByPrice() {
+        // Week 5: Method reference with comparingDouble for primitive optimization
+        // Equivalent lambda: (p1, p2) -> Double.compare(p1.getUnitPrice(), p2.getUnitPrice())
+        trolley.sort(Comparator.comparingDouble(Product::getUnitPrice));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
+    /**
+     * Sorts trolley by product description (alphabetically) using method reference.
+     * 
+     * Week 5: String comparison with natural ordering
+     */
+    void sortTrolleyByName() {
+        // Week 5: Method reference for String comparison
+        // Equivalent lambda: (p1, p2) -> p1.getProductDescription().compareTo(p2.getProductDescription())
+        trolley.sort(Comparator.comparing(Product::getProductDescription));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
+    /**
+     * Sorts trolley by price descending using lambda expression.
+     * Demonstrates lambda syntax when reversed() or custom logic is needed.
+     * 
+     * Week 5: Lambda expressions for custom comparison logic
+     */
+    void sortTrolleyByPriceDescending() {
+        // Week 5: Lambda expression - more explicit than method reference
+        // Shows descending order by reversing comparison order
+        trolley.sort((p1, p2) -> Double.compare(p2.getUnitPrice(), p1.getUnitPrice()));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
+    /**
+     * Sorts trolley by total price (unitPrice * quantity) descending.
+     * Demonstrates lambda expression when calculation is needed.
+     * 
+     * Week 5: Lambda expressions for complex comparison logic
+     */
+    void sortTrolleyByTotalValue() {
+        // Week 5: Lambda expression with calculation - method reference not suitable here
+        // Multi-line lambda body for complex logic
+        trolley.sort((p1, p2) -> {
+            double total1 = p1.getUnitPrice() * p1.getOrderedQuantity();
+            double total2 = p2.getUnitPrice() * p2.getOrderedQuantity();
+            return Double.compare(total2, total1); // Descending order
+        });
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
+    /**
+     * Alternative sorting using anonymous class instead of lambda.
+     * Demonstrates traditional anonymous class approach for comparison.
+     * 
+     * Week 5: Anonymous class implementing Comparator interface
+     * Compare this with lambda version above to see syntax difference
+     */
+    void sortTrolleyByTotalValueAnonymous() {
+        // Week 5: Anonymous class - verbose but explicit implementation
+        // Equivalent to lambda: (p1, p2) -> { ... }
+        trolley.sort(new Comparator<Product>() {
+            @Override
+            public int compare(Product p1, Product p2) {
+                double total1 = p1.getUnitPrice() * p1.getOrderedQuantity();
+                double total2 = p2.getUnitPrice() * p2.getOrderedQuantity();
+                return Double.compare(total2, total1); // Descending order
+            }
+        });
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
     void closeReceipt(){
         displayTaReceipt="";
     }
@@ -223,6 +322,61 @@ public class CustomerModel {
      // extra notes:
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
      //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
+    
+    // Week 5: Item-level control methods supporting custom ListCell
+    // Reference: Week 5 Lab Activities - Item-level Control extension
+    
+    /**
+     * Changes quantity of a specific product by delta amount
+     * Week 5: Uses Stream API with lambda expressions for functional approach
+     */
+    void changeQuantity(String productId, int delta) {
+        // Week 5: Lambda expression with filter to find product
+        // stream() returns Stream<Product>, filter() takes Predicate<Product> (functional interface)
+        trolley.stream()
+               .filter(p -> p.getProductId().equals(productId)) // Lambda implementing Predicate
+               .findFirst()
+               .ifPresent(product -> { // Lambda implementing Consumer
+                   int newQty = product.getOrderedQuantity() + delta;
+                   if (newQty > 0) {
+                       product.setOrderedQuantity(newQty);
+                       displayTaTrolley = ProductListFormatter.buildString(trolley);
+                       updateView();
+                   } else if (newQty == 0) {
+                       removeItem(productId);
+                   }
+               });
+    }
+    
+    /**
+     * Sets quantity of a specific product to exact value
+     * Week 5: Stream API with lambda for finding and updating
+     */
+    void setQuantity(String productId, int newQty) {
+        // Week 5: Stream API with lambda for finding and updating
+        trolley.stream()
+               .filter(p -> p.getProductId().equals(productId))
+               .findFirst()
+               .ifPresent(product -> {
+                   if (newQty > 0) {
+                       product.setOrderedQuantity(newQty);
+                       displayTaTrolley = ProductListFormatter.buildString(trolley);
+                       updateView();
+                   }
+               });
+    }
+    
+    /**
+     * Removes a specific product from trolley
+     * Week 5: removeIf with lambda expression (functional approach)
+     */
+    void removeItem(String productId) {
+        // Week 5: removeIf with lambda expression
+        // removeIf() takes Predicate<Product> (functional interface)
+        trolley.removeIf(p -> p.getProductId().equals(productId));
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
 
     //for test only
     public ArrayList<Product> getTrolley() {
