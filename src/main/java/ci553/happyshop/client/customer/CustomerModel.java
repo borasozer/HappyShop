@@ -2,19 +2,26 @@ package ci553.happyshop.client.customer;
 
 import ci553.happyshop.catalogue.Order;
 import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.catalogue.MinimumPaymentException;
+import ci553.happyshop.catalogue.ExcessiveOrderQuantityException;
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -109,8 +116,50 @@ public class CustomerModel {
         updateView();
     }
 
+    /**
+     * Week 6: Exception propagation through call stack demonstration
+     * 
+     * Call stack for checkout process:
+     * 1. CustomerView (button click) 
+     * 2. → CustomerController.doAction("Check Out")
+     * 3. → CustomerModel.checkOut() ← YOU ARE HERE
+     * 4. → validateTrolley() ← throws exceptions
+     * 5. Exception propagates back up: validateTrolley → checkOut → catch block
+     * 
+     * checkOut() declares 'throws IOException, SQLException' for database/file errors
+     * but HANDLES MinimumPaymentException & ExcessiveOrderQuantityException with try-catch
+     * 
+     * @throws IOException if database/file operations fail
+     * @throws SQLException if database operations fail
+     */
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
+            // Week 6: Validate trolley before processing payment
+            // Try-catch-finally block handles custom exceptions for business rule violations
+            boolean validationPassed = false;
+            try {
+                validateTrolley(trolley);
+                validationPassed = true; // Week 6: Track successful validation
+            } catch (MinimumPaymentException e) {
+                // Week 6: Handle minimum payment violation - keep trolley, inform user
+                System.out.println("MinimumPaymentException caught: " + e.getMessage());
+                removeProductNotifier.showRemovalMsg(e.getUserMessage());
+                return; // Early return - don't proceed with checkout
+            } catch (ExcessiveOrderQuantityException e) {
+                // Week 6: Handle excessive quantity - adjust quantities, inform user
+                System.out.println("ExcessiveOrderQuantityException caught: " + e.getMessage());
+                handleExcessiveQuantities(e.getExcessiveProducts(), e.getMaximumAllowed());
+                removeProductNotifier.showRemovalMsg(e.getUserMessage());
+                validationPassed = true; // Week 6: Proceed after adjustment
+            } finally {
+                // Week 6: Finally block always executes (whether exception thrown or not)
+                // Used for cleanup or logging - executes even if return/exception occurs
+                System.out.println("Validation phase completed. Passed: " + validationPassed);
+                if (validationPassed) {
+                    System.out.println("Proceeding to stock verification...");
+                }
+            }
+            
             // Group the products in the trolley by productId to optimize stock checking
             // Check the database for sufficient stock for all products in the trolley.
             // If any products are insufficient, the update will be rolled back.
@@ -169,6 +218,89 @@ public class CustomerModel {
         updateView();
     }
 
+    /**
+     * Week 6: Validates trolley contents before checkout
+     * 
+     * Uses 'throws' keyword to declare checked exceptions that may be thrown:
+     * - MinimumPaymentException if total < £5
+     * - ExcessiveOrderQuantityException if any product quantity > 50
+     * 
+     * 'throws' in method signature means:
+     * - This method does NOT handle these exceptions itself
+     * - Caller MUST handle them (try-catch) or declare throws
+     * - Compiler enforces this for checked exceptions
+     * - Exception propagates up the call stack to caller
+     * 
+     * Call stack: validateTrolley() → checkOut() → CustomerController
+     * 
+     * @param trolley List of products to validate
+     * @throws MinimumPaymentException if payment below minimum (checked exception)
+     * @throws ExcessiveOrderQuantityException if any quantity exceeds maximum (checked exception)
+     * Reference: Week 6 - throws keyword, Exception Propagation
+     */
+    private void validateTrolley(ArrayList<Product> trolley) 
+            throws MinimumPaymentException, ExcessiveOrderQuantityException {
+        
+        // Week 6: Constant for business rules
+        final double MINIMUM_PAYMENT = 5.0;
+        final int MAXIMUM_QUANTITY = 50;
+        
+        // Week 6: Calculate total payment
+        double totalPayment = 0.0;
+        for (Product p : trolley) {
+            totalPayment += p.getUnitPrice() * p.getOrderedQuantity();
+        }
+        
+        // Week 6: Check minimum payment rule
+        if (totalPayment < MINIMUM_PAYMENT) {
+            // Week 6: 'throw' keyword creates and throws exception object
+            // Execution stops here and exception propagates to caller (checkOut)
+            // new MinimumPaymentException(...) creates exception instance
+            throw new MinimumPaymentException(totalPayment, MINIMUM_PAYMENT);
+        }
+        
+        // Week 6: Check excessive quantity rule
+        ArrayList<Product> excessiveProducts = new ArrayList<>();
+        for (Product p : trolley) {
+            if (p.getOrderedQuantity() > MAXIMUM_QUANTITY) {
+                excessiveProducts.add(p);
+            }
+        }
+        
+        // Week 6: 'throw' keyword throws exception if validation fails
+        // Difference: 'throw' (singular) = throw an exception object
+        //             'throws' (plural) = declare that method may throw exceptions
+        if (!excessiveProducts.isEmpty()) {
+            throw new ExcessiveOrderQuantityException(excessiveProducts, MAXIMUM_QUANTITY);
+        }
+    }
+    
+    /**
+     * Week 6: Handles excessive quantities by reducing them to maximum allowed
+     * Automatically adjusts trolley contents when quantities exceed limit
+     * 
+     * @param excessiveProducts Products with quantities > maximum
+     * @param maximumAllowed Maximum allowed quantity per product
+     */
+    private void handleExcessiveQuantities(List<Product> excessiveProducts, int maximumAllowed) {
+        // Week 6: Reduce quantities to maximum for each excessive product
+        for (Product excessiveProd : excessiveProducts) {
+            // Week 6: Find matching product in trolley and adjust quantity
+            for (Product trolleyProd : trolley) {
+                if (trolleyProd.getProductId().equals(excessiveProd.getProductId())) {
+                    trolleyProd.setOrderedQuantity(maximumAllowed);
+                    System.out.println("Reduced " + trolleyProd.getProductId() + 
+                                     " quantity to maximum: " + maximumAllowed);
+                    break;
+                }
+            }
+        }
+        
+        // Week 6: Update trolley display after quantity adjustment
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+    
     /**
      * Groups products by their productId to optimize database queries and updates.
      * By grouping products, we can check the stock for a given `productId` once, rather than repeatedly
@@ -303,6 +435,47 @@ public class CustomerModel {
     
     void closeReceipt(){
         displayTaReceipt="";
+    }
+    
+    /**
+     * Week 6: Demonstrates try-with-resources for automatic resource management
+     * Saves receipt to file - resources (BufferedWriter, FileWriter) auto-closed
+     * 
+     * Try-with-resources ensures proper cleanup even if exception occurs:
+     * - Resources declared in try() parentheses
+     * - Automatically closed in reverse order of creation
+     * - No explicit finally block needed for cleanup
+     * 
+     * @param orderId Order ID for filename
+     * @param receiptContent Receipt text to save
+     * @throws IOException if file writing fails
+     * Reference: Week 6 - Try-with-resources
+     */
+    void saveReceiptToFile(int orderId, String receiptContent) throws IOException {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String filename = "receipt_" + orderId + "_" + timestamp + ".txt";
+        
+        // Week 6: try-with-resources - BufferedWriter and FileWriter auto-closed
+        // Both resources implement AutoCloseable interface
+        // close() called automatically at end of try block (even if exception thrown)
+        try (FileWriter fileWriter = new FileWriter(filename);
+             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+            
+            bufferedWriter.write("=".repeat(50));
+            bufferedWriter.newLine();
+            bufferedWriter.write("HAPPYSHOP RECEIPT");
+            bufferedWriter.newLine();
+            bufferedWriter.write("=".repeat(50));
+            bufferedWriter.newLine();
+            bufferedWriter.write(receiptContent);
+            bufferedWriter.newLine();
+            bufferedWriter.write("=".repeat(50));
+            
+            System.out.println("Receipt saved to: " + filename);
+            
+        } // Week 6: Resources automatically closed here (reverse order: bufferedWriter, fileWriter)
+        // No need for explicit finally block for resource cleanup
+        // If IOException occurs, resources still closed before exception propagates
     }
 
     void updateView() {
