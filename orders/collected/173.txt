@@ -1,0 +1,10 @@
+Order ID: 173 
+State: Collected
+OrderedDateTime: 2025-12-26 15:47:23 
+ProgressingDateTime: 2025-12-26 15:47:26
+CollectedDateTime: 2025-12-26 15:47:27
+Items:
+ 1616    Test               ( 3) £   6.00
+--------------------------------------------
+ Total                               £   6.00
+

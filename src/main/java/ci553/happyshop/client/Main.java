@@ -42,21 +42,21 @@ public class Main extends Application {
     //starts the system
     @Override
     public void start(Stage window) throws IOException {
+        // Week 6: Grid layout window initialization order
+        // Note: Window positions are assigned by WinPosManager in the order they're created
+        
+        // Row 1: Customer (left) + Picker (right)
         startCustomerClient();
         startPickerClient();
-        startOrderTracker();
-
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
-
-        // Initializes the order map for the OrderHub. This must be called after starting the observer clients
-        // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
+        
+        // Initializes the order map for the OrderHub. This must be called after starting Picker
+        // (OrderTracker can register later and still receive current state)
         initializeOrderMap();
-
+        
+        // Row 2: Warehouse (left) + OrderTracker (middle) + Exit (right)
+        // Week 6: Start in correct visual order for proper WinPosManager positioning
         startWarehouseClient();
-        startWarehouseClient();
-
+        startOrderTracker(); // Registers late but receives current orderMap immediately
         startEmergencyExit();
     }
 

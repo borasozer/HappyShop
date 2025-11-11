@@ -8,8 +8,6 @@ package ci553.happyshop.catalogue;
  * - It represents a recoverable business rule violation
  * - Caller must explicitly handle it (try-catch or throws)
  * - User can fix the issue by adding more items to trolley
- * 
- * Reference: Week 6 - Exception Handling, Custom Exceptions
  */
 public class MinimumPaymentException extends Exception {
     private final double actualAmount;

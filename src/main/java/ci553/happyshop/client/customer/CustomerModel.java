@@ -136,29 +136,28 @@ public class CustomerModel {
         if(!trolley.isEmpty()){
             // Week 6: Validate trolley before processing payment
             // Try-catch-finally block handles custom exceptions for business rule violations
-            boolean validationPassed = false;
             try {
                 validateTrolley(trolley);
-                validationPassed = true; // Week 6: Track successful validation
+                // Week 6: If we reach here, validation passed - proceed to stock check
             } catch (MinimumPaymentException e) {
                 // Week 6: Handle minimum payment violation - keep trolley, inform user
                 System.out.println("MinimumPaymentException caught: " + e.getMessage());
                 removeProductNotifier.showRemovalMsg(e.getUserMessage());
-                return; // Early return - don't proceed with checkout
+                return; // Week 6: Early return - don't proceed with checkout
             } catch (ExcessiveOrderQuantityException e) {
-                // Week 6: Handle excessive quantity - adjust quantities, inform user
+                // Week 6: Handle excessive quantity - adjust quantities, inform user, WAIT for re-checkout
                 System.out.println("ExcessiveOrderQuantityException caught: " + e.getMessage());
                 handleExcessiveQuantities(e.getExcessiveProducts(), e.getMaximumAllowed());
                 removeProductNotifier.showRemovalMsg(e.getUserMessage());
-                validationPassed = true; // Week 6: Proceed after adjustment
+                return; // Week 6: Early return - user must click checkout again with adjusted quantities
             } finally {
                 // Week 6: Finally block always executes (whether exception thrown or not)
-                // Used for cleanup or logging - executes even if return/exception occurs
-                System.out.println("Validation phase completed. Passed: " + validationPassed);
-                if (validationPassed) {
-                    System.out.println("Proceeding to stock verification...");
-                }
+                // Used for cleanup or logging - executes even with early return
+                System.out.println("Validation phase completed.");
             }
+            
+            // Week 6: Validation successful - proceed with stock checking and payment
+            System.out.println("All validations passed. Proceeding to stock verification...");
             
             // Group the products in the trolley by productId to optimize stock checking
             // Check the database for sufficient stock for all products in the trolley.
@@ -170,6 +169,9 @@ public class CustomerModel {
 
             if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
                 //get OrderHub and tell it to make a new Order
+                // Week 6 debug: Log before creating order
+                System.out.println("Week 6 Debug: CustomerModel requesting OrderHub to create new order...");
+                
                 OrderHub orderHub =OrderHub.getOrderHub();
                 Order theOrder = orderHub.newOrder(trolley);
                 trolley.clear();

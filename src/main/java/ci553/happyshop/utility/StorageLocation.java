@@ -23,6 +23,9 @@ import java.nio.file.Paths;
  *         Subfolder to store orders in the "Ordered" state.
  *    - progressingPath:
  *         Subfolder to store orders in the "Progressing" state (e.g., being prepared by a picker).
+ *    - readyPath:
+ *         Subfolder to store orders in the "Ready" state (e.g., prepared and awaiting customer collection).
+ *         Week 6: Added for improved order workflow management.
  *    - collectedPath:
  *         Subfolder to store orders in the "Collected" state (e.g., customer collected).
  *
@@ -59,6 +62,7 @@ public class StorageLocation {
     public static final Path ordersPath = Paths.get(ordersFolder);
     public static final Path orderedPath = ordersPath.resolve("ordered");//orders/ordered to store orders at Ordered state
     public static final Path progressingPath = ordersPath.resolve("progressing");// orders/progressing to store orders at Progressing state
+    public static final Path readyPath = ordersPath.resolve("ready");// Week 6: orders/ready to store orders at Ready state
     public static final Path collectedPath = ordersPath.resolve("collected");//orders/collected to store orders at Collected state
 
     //OrderCounter File and its Path, ie orders/orderCounter.txt

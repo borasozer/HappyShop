@@ -46,6 +46,12 @@ public class OrderFileManager {
 
     //Creates a new order file in the specified directory with the given content.
     public static void createOrderFile(Path dir, int orderId, String orderDetail) throws IOException {
+        // Week 6 fix: Ensure parent directories exist before creating file
+        if (Files.notExists(dir)) {
+            Files.createDirectories(dir);
+            System.out.println("Week 6 Debug: Created directory: " + dir);
+        }
+        
         String orderFileName = String.valueOf(orderId)+".txt";
         Path path = dir.resolve(orderFileName); // eg. orders/ordered/12.txt
         if(Files.notExists(path)) {
@@ -66,6 +72,12 @@ public class OrderFileManager {
     //Progressing state in orders/progressing
     //Collected state in orders/collected
     public static boolean updateAndMoveOrderFile(int orderId, OrderState newState, Path sourceDir, Path targetDir) throws IOException {
+        // Week 6 fix: Ensure target directory exists before moving file
+        if (Files.notExists(targetDir)) {
+            Files.createDirectories(targetDir);
+            System.out.println("Week 6 Debug: Created target directory: " + targetDir);
+        }
+        
         String orderFileName = String.valueOf(orderId)+".txt";
         Path sourcePath = sourceDir.resolve(orderFileName);
         Path targetPath = targetDir.resolve(orderFileName);

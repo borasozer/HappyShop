@@ -37,26 +37,32 @@ public final class UIStyle {
         throw new UnsupportedOperationException("UIStyle is a utility class and cannot be instantiated");
     }
 
-    public static final int customerWinWidth = 600;
-    public static final int customerWinHeight = 300;
+    // Week 6: Grid layout - all windows aligned in 2 rows
+    // Row 1: Customer (left) + Picker (right) - same height
+    // Row 2: Warehouse (left) + OrderTracker (middle) + Exit (right) - same height
+    
+    public static final int customerWinWidth = 650;  // Week 6: Wider for better UX
+    public static final int customerWinHeight = 350; // Week 6: Taller, matches picker
     public static final int removeProNotifierWinWidth = customerWinWidth/2 +160;
     public static final int removeProNotifierWinHeight = 230;
 
-    public static final int pickerWinWidth = 310;
-    public static final int pickerWinHeight = 300;
+    public static final int pickerWinWidth = 680;   // Week 6: Narrower to fit layout, matches customer height
+    public static final int pickerWinHeight = 350;  // Week 6: Same as customer for aligned row
 
-    public static final int trackerWinWidth = 210;
-    public static final int trackerWinHeight = 300;
+    public static final int warehouseWinWidth = 650; // Week 6: Same as customer width
+    public static final int warehouseWinHeight = 320; // Week 6: Uniform height for row 2
 
-    public static final int warehouseWinWidth = 630;
-    public static final int warehouseWinHeight = 300;
+    public static final int trackerWinWidth = 280;   // Week 6: Wider for better visibility
+    public static final int trackerWinHeight = 320;  // Week 6: Same as warehouse
+
+    public static final int EmergencyExitWinWidth = 350; // Week 6: Wider to match row height
+    public static final int EmergencyExitWinHeight = 320; // Week 6: Same as warehouse/tracker
+    
+    // Warehouse dependent windows
     public static final int AlertSimWinWidth = 300;
     public static final int AlertSimWinHeight = 170;
     public static final int HistoryWinWidth = 300;
     public static final int HistoryWinHeight = 140;
-
-    public static final int EmergencyExitWinWidth = 200;
-    public static final int EmergencyExitWinHeight = 300;
 
     public static final String labelTitleStyle ="-fx-font-weight: bold; " +
             "-fx-font-size: 16px; -fx-text-fill: purple;";

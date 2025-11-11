@@ -29,6 +29,7 @@ public final class WinPosManager {
     private static final double BASE_X = 10; // Initial X position
     private static final double BASE_Y = 10; // Initial Y position
     private static final double GAP = 10; // Space between windows
+    private static final double ROW_GAP = 120; // Week 6: Extra gap between rows for better separation
 
     private static double occupiedWidth = 0; // total width of all windows on current row
     private static double occupiedHeight = 0;
@@ -53,10 +54,10 @@ public final class WinPosManager {
 
         // Case 2: New row (horizontal overflow, but vertical space available)
         else if ((occupiedHeight + height < SCREEN_HEIGHT - BASE_Y)) {
-            // Move to next row
+            // Week 6: Move to next row with larger gap for better separation
             occupiedWidth = 0;
             x = BASE_X;
-            y += height + GAP * 4;
+            y += height + ROW_GAP; // Using ROW_GAP instead of GAP * 4
 
             stage.setX(x);
             stage.setY(y);
@@ -82,12 +83,12 @@ public final class WinPosManager {
         if (occupiedWidth + width > SCREEN_WIDTH - BASE_X) {
             occupiedWidth = 0; // Reset occupiedWidth
             x = BASE_X;  //reset x for next row
-            y += height + GAP*4; // update y so that move to next row,
+            y += height + ROW_GAP; // Week 6: update y so that move to next row
         }
 
         // If the new row exceeds screen height, windows are placed in the last row,
         if (y + height > SCREEN_HEIGHT - BASE_Y) {
-            y -= (height + GAP*4); // Stack on top
+            y -= (height + ROW_GAP); // Week 6: Stack on top
         }
 
         // Set window position

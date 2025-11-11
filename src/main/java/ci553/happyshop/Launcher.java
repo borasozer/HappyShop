@@ -4,7 +4,7 @@ import ci553.happyshop.client.Main;
 import javafx.application.Application;
 
 /**
- * The Launcher class serves as the main entry point of the system.
+ * The Launcher class serves as the main entry point of the system. 
  * It calls the launch() method of the Main class to start the JavaFX application.
  * This class is intentionally kept simple to isolate the bootstrapping logic.
  *
