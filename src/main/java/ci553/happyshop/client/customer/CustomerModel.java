@@ -42,39 +42,94 @@ public class CustomerModel {
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
+    private ArrayList<Product> searchResults = new ArrayList<>(); // Week 7: Multiple search results for flexible search
 
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
-    private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
+    private String displayLaSearchResult = "Please type Product ID or Name"; // Week 7: Updated prompt for flexible search
     private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
     private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
 
-    //SELECT productID, description, image, unitPrice,inStock quantity
+    /**
+     * Week 7: Flexible search - accepts both Product ID and Product Name
+     * Uses DatabaseRW.searchProduct() which searches by ID first, then by name if not found
+     */
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
+        String keyword = cusView.tfId.getText().trim();
+        if(!keyword.isEmpty()){
+            // Week 7: Search by ID or name using unified search method
+            searchResults = databaseRW.searchProduct(keyword);
+            
+            if(!searchResults.isEmpty()){ 
+                // Week 7: If multiple results found, show list; if single result, show details
+                if(searchResults.size() == 1){
+                    theProduct = searchResults.get(0);
+                    if(theProduct.getStockQuantity() > 0){
+                        double unitPrice = theProduct.getUnitPrice();
+                        String description = theProduct.getProductDescription();
+                        int stock = theProduct.getStockQuantity();
+                        String productId = theProduct.getProductId(); // Week 7: Use actual product ID, not search keyword
+
+                        String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
+                        String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
+                        displayLaSearchResult = baseInfo + quantityInfo;
+                        System.out.println("Product " + productId + " found (searched by: " + keyword + ")");
+                    } else {
+                        theProduct = null;
+                        displayLaSearchResult = "Product found but out of stock";
+                    }
+                } else {
+                    // Week 7: Multiple results - user will select from list
+                    theProduct = null;
+                    displayLaSearchResult = searchResults.size() + " products found. Select one to view details.";
+                    System.out.println(searchResults.size() + " products found for keyword: " + keyword);
+                }
+            }else{
+                // Week 7: No results found
+                theProduct = null;
+                searchResults.clear();
+                displayLaSearchResult = "No product found with ID or Name: " + keyword;
+                System.out.println("No product found for keyword: " + keyword);
+            }
+        }else{
+            theProduct = null;
+            searchResults.clear();
+            displayLaSearchResult = "Please type Product ID or Name";
+            System.out.println("Please type Product ID or Name.");
+        }
+        updateView();
+    }
+
+    /**
+     * Week 7: Getter for search results to display in ListView
+     */
+    public ArrayList<Product> getSearchResults() {
+        return searchResults;
+    }
+
+    /**
+     * Week 7: Selects a product from search results and displays its details
+     * Called when user clicks on a product in the search results list
+     */
+    void selectProduct(Product selectedProduct) {
+        if(selectedProduct != null){
+            theProduct = selectedProduct;
+            if(theProduct.getStockQuantity() > 0){
                 double unitPrice = theProduct.getUnitPrice();
                 String description = theProduct.getProductDescription();
                 int stock = theProduct.getStockQuantity();
+                String productId = theProduct.getProductId();
 
                 String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
                 String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
                 displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
+                System.out.println("Product " + productId + " selected.");
+            } else {
+                theProduct = null;
+                displayLaSearchResult = "Product found but out of stock";
             }
-            else{
-                theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
-            }
-        }else{
-            theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
-            System.out.println("Please type ProductID.");
+            updateView();
         }
-        updateView();
     }
 
     void addToTrolley(){

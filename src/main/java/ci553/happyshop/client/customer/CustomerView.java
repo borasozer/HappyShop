@@ -1,5 +1,6 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
@@ -47,6 +48,7 @@ public class CustomerView  {
     //four controllers needs updating when program going on
     private ImageView ivProduct; //image area in searchPage
     private Label lbProductInfo;//product text info in searchPage
+    private ListView<Product> lvSearchResults; // Week 7: List view for multiple search results
     private TextArea taTrolley; //in trolley Page
     private TextArea taReceipt;//in receipt page
 
@@ -83,19 +85,22 @@ public class CustomerView  {
         Label laPageTitle = new Label("Search by Product ID/Name");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
-        Label laId = new Label("ID:      ");
+        Label laId = new Label("Search:");
         laId.setStyle(UIStyle.labelStyle);
         tfId = new TextField();
-        tfId.setPromptText("eg. 0001");
+        tfId.setPromptText("ID (eg. 0001) or Name (eg. TV)"); // Week 7: Updated prompt for flexible search
         tfId.setStyle(UIStyle.textFiledStyle);
         HBox hbId = new HBox(10, laId, tfId);
 
+        // Week 7: Name field hidden as unified search now accepts both ID and name in single field
         Label laName = new Label("Name:");
         laName.setStyle(UIStyle.labelStyle);
         tfName = new TextField();
         tfName.setPromptText("implement it if you want");
         tfName.setStyle(UIStyle.textFiledStyle);
         HBox hbName = new HBox(10, laName, tfName);
+        hbName.setVisible(false); // Week 7: Hidden - unified search field replaces separate name field
+        hbName.setManaged(false); // Week 7: Remove from layout calculations
 
         Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
         Button btnSearch = new Button("Search");
@@ -135,7 +140,33 @@ public class CustomerView  {
         HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);
+        // Week 7: ListView for displaying multiple search results
+        lvSearchResults = new ListView<>();
+        lvSearchResults.setPrefHeight(80);
+        lvSearchResults.setVisible(false); // Week 7: Hidden by default, shown when multiple results
+        lvSearchResults.setStyle("-fx-font-size: 11px;");
+        // Week 7: Lambda expression for handling product selection from list
+        lvSearchResults.setOnMouseClicked(event -> {
+            Product selectedProduct = lvSearchResults.getSelectionModel().getSelectedItem();
+            if (selectedProduct != null) {
+                cusController.selectProduct(selectedProduct);
+            }
+        });
+        // Week 7: Custom cell factory for compact product display
+        lvSearchResults.setCellFactory(param -> new ListCell<Product>() {
+            @Override
+            protected void updateItem(Product product, boolean empty) {
+                super.updateItem(product, empty);
+                if (empty || product == null) {
+                    setText(null);
+                } else {
+                    // Week 7: Display product ID and description in list
+                    setText(product.getProductId() + " - " + product.getProductDescription());
+                }
+            }
+        });
+
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult, lvSearchResults);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
@@ -275,9 +306,31 @@ public class CustomerView  {
         ivProduct.setImage(new Image(imageName));
         lbProductInfo.setText(searchResult);
         taTrolley.setText(trolley);
+        
+        // Week 7: Update search results list visibility based on number of results
+        updateSearchResults();
+        
         if (!receipt.equals("")) {
             showTrolleyOrReceiptPage(vbReceiptPage);
             taReceipt.setText(receipt);
+        }
+    }
+
+    /**
+     * Week 7: Updates search results ListView based on search outcome
+     * Shows ListView for multiple results, hides it for single or no results
+     */
+    private void updateSearchResults() {
+        if (cusController.cusModel.getSearchResults().size() > 1) {
+            // Week 7: Multiple results - show ListView
+            lvSearchResults.getItems().clear();
+            lvSearchResults.getItems().addAll(cusController.cusModel.getSearchResults());
+            lvSearchResults.setVisible(true);
+            lbProductInfo.setVisible(true); // Week 7: Keep label visible for instructions
+        } else {
+            // Week 7: Single or no results - hide ListView
+            lvSearchResults.setVisible(false);
+            lbProductInfo.setVisible(true);
         }
     }
 

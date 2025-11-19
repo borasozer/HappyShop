@@ -1,5 +1,7 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
+
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -57,6 +59,13 @@ public class CustomerController {
                 cusModel.removeItem(productId);
                 break;
         }
+    }
+    
+    /**
+     * Week 7: Handle product selection from search results list
+     */
+    public void selectProduct(Product product) {
+        cusModel.selectProduct(product);
     }
     
     // Week 5: Original action handling
