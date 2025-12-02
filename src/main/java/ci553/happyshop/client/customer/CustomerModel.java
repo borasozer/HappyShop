@@ -223,6 +223,27 @@ public class CustomerModel {
             ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
 
             if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
+                // Week 9: Calculate total for payment dialog
+                double totalAmount = 0.0;
+                for (Product p : trolley) {
+                    totalAmount += p.getUnitPrice() * p.getOrderedQuantity();
+                }
+                
+                // Week 9: Show payment dialog before finalizing order
+                PaymentDialog paymentDialog = new PaymentDialog();
+                PaymentResult paymentResult = paymentDialog.show(totalAmount);
+                
+                // Week 9: Check if payment was confirmed
+                if (!paymentResult.isConfirmed()) {
+                    System.out.println("Week 9: Payment cancelled by user. Checkout aborted.");
+                    displayTaTrolley = ProductListFormatter.buildString(trolley); // Week 9: Keep trolley intact
+                    updateView();
+                    return; // Week 9: Exit checkout without creating order
+                }
+                
+                // Week 9: Payment confirmed - log payment method
+                System.out.println("Week 9: Payment confirmed via " + paymentResult.getPaymentMethod());
+                
                 //get OrderHub and tell it to make a new Order
                 // Week 6 debug: Log before creating order
                 System.out.println("Week 6 Debug: CustomerModel requesting OrderHub to create new order...");

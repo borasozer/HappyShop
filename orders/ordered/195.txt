@@ -1,0 +1,10 @@
+Order ID: 195 
+State: Ordered 
+OrderedDateTime: 2025-12-30 19:30:26 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0004    Watch              ( 1) £  29.99
+--------------------------------------------
+ Total                               £  29.99
+
