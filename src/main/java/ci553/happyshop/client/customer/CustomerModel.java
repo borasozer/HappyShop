@@ -54,6 +54,33 @@ public class CustomerModel {
     private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
 
     /**
+     * Week 10: Constructor Injection (DIP - Dependency Inversion Principle)
+     * Dependencies are explicitly passed through constructor, making them clear and testable.
+     * 
+     * Benefits:
+     * - Explicit dependencies: All required dependencies visible in constructor signature
+     * - Immutability: Dependencies set once at construction time
+     * - Testability: Easy to inject mock objects for unit testing
+     * - Loose coupling: Depends on DatabaseRW interface, not concrete implementation
+     * 
+     * @param databaseRW Database access interface (not concrete implementation)
+     * @param notifier Notification system for stock shortage alerts
+     */
+    public CustomerModel(DatabaseRW databaseRW, RemoveProductNotifier notifier) {
+        this.databaseRW = databaseRW;
+        this.removeProductNotifier = notifier;
+        System.out.println("Week 10: CustomerModel created with constructor injection (DIP)");
+    }
+
+    /**
+     * Week 10: Default constructor for backward compatibility
+     * Allows existing code to continue working while demonstrating constructor injection
+     */
+    public CustomerModel() {
+        System.out.println("Week 10: CustomerModel created with default constructor (setter injection will be used)");
+    }
+
+    /**
      * Week 7: Flexible search - accepts both Product ID and Product Name
      * Uses DatabaseRW.searchProduct() which searches by ID first, then by name if not found
      */

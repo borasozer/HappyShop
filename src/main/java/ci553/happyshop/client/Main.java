@@ -72,19 +72,25 @@ public class Main extends Application {
     private void startCustomerClient(){
         CustomerView cusView = new CustomerView();
         CustomerController cusController = new CustomerController();
-        CustomerModel cusModel = new CustomerModel();
+        
+        // Week 10: Constructor Injection (DIP) - Dependencies created first
         DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
+        RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
+        
+        // Week 10: Constructor Injection - Pass dependencies through constructor
+        // This demonstrates Dependency Inversion Principle (DIP)
+        // Benefits: Explicit dependencies, better testability, immutability
+        CustomerModel cusModel = new CustomerModel(databaseRW, removeProductNotifier);
 
+        // Week 10: Wire up MVC components
         cusView.cusController = cusController;
         cusController.cusModel = cusModel;
-        cusModel.cusView = cusView;
-        cusModel.databaseRW = databaseRW;
-        cusView.start(new Stage());
-
-        // Week 3: Initialize RemoveProductNotifier for stock shortage handling
-        RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
+        cusModel.cusView = cusView; // Setter injection for view (to avoid circular dependency)
+        
+        // Week 3: Link notifier to view for positioning
         removeProductNotifier.cusView = cusView;
-        cusModel.removeProductNotifier = removeProductNotifier;
+        
+        cusView.start(new Stage());
     }
 
     /** The picker GUI, - for staff to pack customer's order,
