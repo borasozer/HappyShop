@@ -81,9 +81,36 @@ public class CustomerView  {
         viewWindow=window;// Sets viewWindow to this window for future reference and management.
     }
 
+    // Week 10: Customer type selection for different business rules and benefits
+    private ComboBox<String> customerTypeCombo;
+    
     private VBox createSearchPage() {
         Label laPageTitle = new Label("Search by Product ID/Name");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
+
+        // Week 10: Customer type selection (Standard, VIP, Prime)
+        Label laCustomerType = new Label("Customer Type:");
+        laCustomerType.setStyle(UIStyle.labelStyle);
+        customerTypeCombo = new ComboBox<>();
+        customerTypeCombo.getItems().addAll("Standard", "VIP", "Prime");
+        customerTypeCombo.setValue("Standard"); // Week 10: Default to Standard
+        customerTypeCombo.setStyle(UIStyle.textFiledStyle);
+        // Week 10: Lambda expression to update customer type in model
+        customerTypeCombo.setOnAction(event -> {
+            String selectedType = customerTypeCombo.getValue();
+            if (selectedType != null) {
+                try {
+                    cusController.doAction("CHANGE_CUSTOMER_TYPE:" + selectedType);
+                    
+                    // Week 10: Show information dialog about customer type benefits
+                    CustomerTypeInfoDialog infoDialog = new CustomerTypeInfoDialog();
+                    infoDialog.show(selectedType);
+                } catch (SQLException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        HBox hbCustomerType = new HBox(10, laCustomerType, customerTypeCombo);
 
         Label laId = new Label("Search:");
         laId.setStyle(UIStyle.labelStyle);
@@ -166,7 +193,7 @@ public class CustomerView  {
             }
         });
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult, lvSearchResults);
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbCustomerType, hbId, hbName, hbBtns, hbSearchResult, lvSearchResults); // Week 10: Added customer type selection
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
@@ -346,5 +373,10 @@ public class CustomerView  {
     WindowBounds getWindowBounds() {
         return new WindowBounds(viewWindow.getX(), viewWindow.getY(),
                   viewWindow.getWidth(), viewWindow.getHeight());
+    }
+
+    // Week 10: Getter for selected customer type
+    public String getSelectedCustomerType() {
+        return customerTypeCombo.getValue();
     }
 }

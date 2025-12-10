@@ -73,15 +73,18 @@ public class PickerView  {
      * Week 6: Updates picker UI with new order data using ListView
      * Platform.runLater ensures UI updates happen on JavaFX Application Thread
      */
-    void update(TreeMap<Integer, OrderState> newOrderMap) {
+    // Week 10: Added customerTypes parameter
+    void update(TreeMap<Integer, OrderState> newOrderMap, TreeMap<Integer, String> customerTypes) {
         Platform.runLater(() -> {
             orderMap.clear();
             orderMap.putAll(newOrderMap);
             
             // Week 6: Convert order map to observable list for ListView
+            // Week 10: Include customer type in OrderEntry
             lvOrders.getItems().clear();
             for (Map.Entry<Integer, OrderState> entry : orderMap.entrySet()) {
-                lvOrders.getItems().add(new OrderEntry(entry.getKey(), entry.getValue()));
+                String customerType = customerTypes.getOrDefault(entry.getKey(), "Standard"); // Week 10: Get customer type
+                lvOrders.getItems().add(new OrderEntry(entry.getKey(), entry.getValue(), customerType)); // Week 10: Pass customer type
             }
         });
     }
@@ -92,10 +95,13 @@ public class PickerView  {
     private static class OrderEntry {
         private final int orderId;
         private OrderState state;
+        private final String customerType; // Week 10: Customer type (Standard/VIP/Prime)
 
-        public OrderEntry(int orderId, OrderState state) {
+        // Week 10: Updated constructor to include customer type
+        public OrderEntry(int orderId, OrderState state, String customerType) {
             this.orderId = orderId;
             this.state = state;
+            this.customerType = customerType;
         }
 
         public int getOrderId() {
@@ -108,6 +114,11 @@ public class PickerView  {
 
         public void setState(OrderState state) {
             this.state = state;
+        }
+
+        // Week 10: Getter for customer type
+        public String getCustomerType() {
+            return customerType;
         }
     }
 
@@ -127,7 +138,7 @@ public class PickerView  {
         public OrderListCell() {
             // Week 6: Style components
             laOrderId.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-            laOrderId.setPrefWidth(100);
+            laOrderId.setPrefWidth(180); // Week 10: Increased width to fit customer type labels (VIP/Prime)
             
             btnDetails.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 11px;");
             btnDetails.setPrefWidth(70);
@@ -174,7 +185,14 @@ public class PickerView  {
                 setText(null);
                 setGraphic(null);
             } else {
-                laOrderId.setText("Order #" + order.getOrderId());
+                // Week 10: Display customer type next to order ID
+                String customerTypeLabel = "";
+                if (order.getCustomerType().equals("VIP")) {
+                    customerTypeLabel = " [🌟 VIP]";
+                } else if (order.getCustomerType().equals("Prime")) {
+                    customerTypeLabel = " [⭐ Prime]";
+                }
+                laOrderId.setText("Order #" + order.getOrderId() + customerTypeLabel);
                 
                 // Week 6: Update button styles based on current state
                 updateStateButtons(order.getState());

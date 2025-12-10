@@ -14,6 +14,8 @@ public class CustomerController {
             handleSortAction(action);
         } else if (action.startsWith("CHANGE_QTY:") || action.startsWith("SET_QTY:") || action.startsWith("REMOVE_ITEM:")) {
             handleItemAction(action);
+        } else if (action.startsWith("CHANGE_CUSTOMER_TYPE:")) { // Week 10: Handle customer type changes
+            handleCustomerTypeChange(action);
         } else {
             handleStandardAction(action);
         }
@@ -58,6 +60,15 @@ public class CustomerController {
             case "REMOVE_ITEM":
                 cusModel.removeItem(productId);
                 break;
+        }
+    }
+    
+    // Week 10: Handle customer type selection changes
+    private void handleCustomerTypeChange(String action) {
+        String[] parts = action.split(":");
+        if (parts.length == 2) {
+            String customerType = parts[1]; // Standard, VIP, or Prime
+            cusModel.setCustomerType(customerType);
         }
     }
     

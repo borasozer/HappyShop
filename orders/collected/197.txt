@@ -1,8 +1,9 @@
-Order ID: 191 
-State: Ready
-OrderedDateTime: 2025-12-26 16:31:02 
+Order ID: 197 
+State: Collected
+CustomerType: Standard
+OrderedDateTime: 2025-12-30 20:03:42 
 ProgressingDateTime:  
-CollectedDateTime: 
+CollectedDateTime: 2025-12-30 20:11:15
 Items:
  0004    Watch              ( 1) £  29.99
 --------------------------------------------

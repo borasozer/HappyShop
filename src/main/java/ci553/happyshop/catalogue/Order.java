@@ -39,14 +39,18 @@ public class Order {
     private ArrayList<Product> productList = new ArrayList<>(); //Trolley
     // Week 3: Enum for type-safe payment method (future feature)
     private PaymentMethod paymentMethod = PaymentMethod.CASH; // Default payment method
+    // Week 10: Customer type for tracking VIP/Prime benefits in orders
+    private String customerType = "Standard";
 
     // Constructor used by OrderHub to create a new order for a customer.
     // Initializes the order with an ID, state, order date/time, and a list of ordered products.
-    public Order(int orderId,OrderState state, String orderedDateTime,ArrayList<Product> productList) {
+    // Week 10: Added customerType parameter for tracking customer tier benefits
+    public Order(int orderId,OrderState state, String orderedDateTime,ArrayList<Product> productList, String customerType) {
         this.orderId = orderId;
         this.state = state;
         this.orderedDateTime =orderedDateTime;
         this.productList = new ArrayList<>(productList);
+        this.customerType = customerType; // Week 10: Store customer type for order tracking
     }
 
     //a set of getter methods
@@ -58,6 +62,8 @@ public class Order {
     }
     // Week 3: Getter for enum-based payment method
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    // Week 10: Getter for customer type
+    public String getCustomerType() { return customerType; }
 
     public void setState(OrderState state) { this.state = state; }
     // Week 3: Setter for enum-based payment method with validation
@@ -68,17 +74,20 @@ public class Order {
     /**
      * order details written to file, used by OrderHub
      *  - Order metadata (ID, state, and three timestamps)
-     *  -Product details included in the order
+     *  - Customer type (Week 10: for tracking VIP/Prime benefits)
+     *  - Product details included in the order
      */
     public String orderDetails() {
         return String.format("Order ID: %s \n" +
                         "State: %s \n" +
+                        "CustomerType: %s\n" +
                         "OrderedDateTime: %s \n" +
                         "ProgressingDateTime: %s \n" +
                         "CollectedDateTime: %s\n" +
                         "Items:\n%s",
                 orderId,
                 state,
+                customerType, // Week 10: Include customer type in order details
                 orderedDateTime,
                 progressingDateTime,
                 collectedDateTime,

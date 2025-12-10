@@ -45,6 +45,8 @@ public class PickerModel {
 
     // TreeMap (orderID,state) holding order IDs and their corresponding states.
     private static TreeMap<Integer, OrderState> orderMap = new TreeMap<>();
+    // Week 10: TreeMap holding customer types for each order
+    private static TreeMap<Integer, String> customerTypes = new TreeMap<>();
     
     // Week 6: Track current order being modified
     private int theOrderId = 0;
@@ -89,13 +91,18 @@ public class PickerModel {
     /**
      * Sets the order map with new data and refreshes the display.
      * Week 6: Now passes TreeMap directly to view for ListView rendering
+     * Week 10: Added customerTypes parameter for displaying customer tier in picker view
      */
-    public void setOrderMap(TreeMap<Integer,OrderState> om) {
+    public void setOrderMap(TreeMap<Integer,OrderState> om, TreeMap<Integer, String> ct) {
         // Week 6 debug: Log received order map update
         System.out.println("Week 6 Debug: PickerModel.setOrderMap() called with " + om.size() + " orders");
         
         orderMap.clear();
         orderMap.putAll(om);
+        
+        // Week 10: Update customer types
+        customerTypes.clear();
+        customerTypes.putAll(ct);
         
         updatePickerView();
     }
@@ -103,8 +110,9 @@ public class PickerModel {
     /**
      * Week 6: Updates picker view with current order map
      * Passes map directly instead of building string
+     * Week 10: Now also passes customer types for display
      */
     private void updatePickerView() {
-        pickerView.update(orderMap);
+        pickerView.update(orderMap, customerTypes); // Week 10: Pass customer types to view
     }
 }

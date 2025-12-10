@@ -1,0 +1,11 @@
+Order ID: 198 
+State: Collected
+CustomerType: VIP
+OrderedDateTime: 2025-12-30 20:03:54 
+ProgressingDateTime:  
+CollectedDateTime: 2025-12-30 20:11:14
+Items:
+ 0004    Watch              ( 1) £  29.99
+--------------------------------------------
+ Total                               £  29.99
+

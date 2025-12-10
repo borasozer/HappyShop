@@ -50,6 +50,7 @@ public class OrderHub  {
 
     private TreeMap<Integer,OrderState> orderMap = new TreeMap<>();
     private TreeMap<Integer,OrderState> progressingOrderMap = new TreeMap<>(); // Week 6: Temporary map for filtering
+    private TreeMap<Integer,String> orderCustomerTypes = new TreeMap<>(); // Week 10: Map to track customer type for each order
 
     /**
      * Two Lists to hold all registered OrderTracker and PickerModel observers.
@@ -74,11 +75,13 @@ public class OrderHub  {
 
     //Creates a new order using the provided list of products.
     //and also notify picker and orderTracker
-    public Order newOrder(ArrayList<Product> trolley) throws IOException, SQLException {
+    // Week 10: Added customerType parameter for tracking customer tier (Standard/VIP/Prime)
+    public Order newOrder(ArrayList<Product> trolley, String customerType) throws IOException, SQLException {
         int orderId = OrderCounter.generateOrderId(); //get unique orderId
         String orderedDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         //make an Order Object: id, Ordered_state, orderedDateTime, and productsList(trolley)
-        Order theOrder = new Order(orderId,OrderState.Ordered,orderedDateTime,trolley);
+        // Week 10: Pass customerType to Order constructor
+        Order theOrder = new Order(orderId,OrderState.Ordered,orderedDateTime,trolley,customerType);
 
         // Week 6 debug: Log new order creation
         System.out.println("Week 6 Debug: Creating new order ID: " + orderId);
@@ -89,6 +92,7 @@ public class OrderHub  {
         OrderFileManager.createOrderFile(path, orderId, orderDetail);
 
         orderMap.put(orderId, theOrder.getState()); //add the order to orderMap,state is Ordered initially
+        orderCustomerTypes.put(orderId, customerType); // Week 10: Track customer type for this order
         
         // Week 6 debug: Log before notifications
         System.out.println("Week 6 Debug: Order added to map. Total orders: " + orderMap.size());
@@ -132,7 +136,14 @@ public class OrderHub  {
         orderMapForPicker.putAll(orderedMap);
         orderMapForPicker.putAll(progressingMap);
         orderMapForPicker.putAll(readyMap);
-        pickerModel.setOrderMap(orderMapForPicker);
+        
+        // Week 10: Filter customer types for newly registered picker
+        TreeMap<Integer, String> customerTypesForPicker = new TreeMap<>();
+        for (Integer orderId : orderMapForPicker.keySet()) {
+            customerTypesForPicker.put(orderId, orderCustomerTypes.getOrDefault(orderId, "Standard"));
+        }
+        
+        pickerModel.setOrderMap(orderMapForPicker, customerTypesForPicker); // Week 10: Pass customer types
     }
 
     /**
@@ -155,8 +166,14 @@ public class OrderHub  {
         // Week 6 debug: Log what we're sending to pickers
         System.out.println("Week 6 Debug: Notifying pickers with " + orderMapForPicker.size() + " orders");
         
+        // Week 10: Filter customer types for orders being sent to pickers
+        TreeMap<Integer, String> customerTypesForPicker = new TreeMap<>();
+        for (Integer orderId : orderMapForPicker.keySet()) {
+            customerTypesForPicker.put(orderId, orderCustomerTypes.getOrDefault(orderId, "Standard"));
+        }
+        
         for(PickerModel pickerModel : pickerModelList){
-            pickerModel.setOrderMap(orderMapForPicker);
+            pickerModel.setOrderMap(orderMapForPicker, customerTypesForPicker); // Week 10: Pass customer types
         }
     }
 
@@ -278,17 +295,23 @@ public class OrderHub  {
         if(orderedIds.size()>0){
             for(Integer orderId : orderedIds){
                 orderMap.put(orderId, OrderState.Ordered);
+                // Week 10: Load customer type from order file
+                loadCustomerTypeFromFile(orderedPath, orderId);
             }
         }
         if(progressingIds.size()>0){
             for(Integer orderId : progressingIds){
                 orderMap.put(orderId, OrderState.Progressing);
+                // Week 10: Load customer type from order file
+                loadCustomerTypeFromFile(progressingPath, orderId);
             }
         }
         // Week 6: Load ready state orders
         if(readyIds.size()>0){
             for(Integer orderId : readyIds){
                 orderMap.put(orderId, OrderState.Ready);
+                // Week 10: Load customer type from order file
+                loadCustomerTypeFromFile(readyPath, orderId);
             }
         }
         
@@ -331,6 +354,46 @@ public class OrderHub  {
             System.out.println(dir + " does not exist.");
         }
         return orderIds;
+    }
+    
+    /**
+     * Week 10: Loads customer type from order file and stores it in orderCustomerTypes map
+     * This ensures customer type persists across application restarts
+     * @param dir The directory containing the order file
+     * @param orderId The order ID to load customer type for
+     */
+    private void loadCustomerTypeFromFile(Path dir, int orderId) {
+        Path orderFile = dir.resolve(orderId + ".txt");
+        if (Files.exists(orderFile)) {
+            try {
+                // Week 10: Read order file and extract customer type line
+                String content = Files.readString(orderFile);
+                String[] lines = content.split("\n");
+                
+                for (String line : lines) {
+                    // Week 10: Look for "CustomerType: VIP" or "CustomerType: Prime" etc.
+                    if (line.startsWith("CustomerType:")) {
+                        String customerType = line.substring("CustomerType:".length()).trim();
+                        orderCustomerTypes.put(orderId, customerType);
+                        System.out.println("Week 10: Loaded customer type for order " + orderId + ": " + customerType);
+                        break; // Found it, no need to continue
+                    }
+                }
+                
+                // Week 10: If no customer type found, default to Standard
+                if (!orderCustomerTypes.containsKey(orderId)) {
+                    orderCustomerTypes.put(orderId, "Standard");
+                    System.out.println("Week 10: No customer type found for order " + orderId + ", defaulting to Standard");
+                }
+                
+            } catch (IOException e) {
+                System.out.println("Week 10: Error reading customer type from order file " + orderId + ": " + e.getMessage());
+                orderCustomerTypes.put(orderId, "Standard"); // Week 10: Default to Standard on error
+            }
+        } else {
+            System.out.println("Week 10: Order file not found: " + orderFile);
+            orderCustomerTypes.put(orderId, "Standard"); // Week 10: Default to Standard if file doesn't exist
+        }
     }
 
 }

@@ -22,16 +22,18 @@ import javafx.stage.Stage;
 public class PaymentDialog {
 
     private final int WIDTH = 400;
-    private final int HEIGHT = 280; // Week 9: Increased height to fit all elements comfortably
+    private final int HEIGHT = 320; // Week 10: Increased height to fit Prime discount display
     
     private PaymentResult result = null; // Week 9: Stores user's choice
 
     /**
      * Week 9: Shows payment dialog and waits for user input.
+     * Week 10: Added customerType parameter to display Prime discount
      * @param totalAmount The total order amount to display
+     * @param customerType The customer type (Standard/VIP/Prime)
      * @return PaymentResult containing user's choice
      */
-    public PaymentResult show(double totalAmount) {
+    public PaymentResult show(double totalAmount, String customerType) {
         Stage dialogStage = new Stage();
         dialogStage.initModality(Modality.APPLICATION_MODAL); // Week 9: Blocks other windows
         dialogStage.setTitle("💳 Payment Required");
@@ -40,8 +42,19 @@ public class PaymentDialog {
         Label laTitle = new Label("Complete Your Payment");
         laTitle.setStyle(UIStyle.labelTitleStyle);
 
+        // Week 10: Calculate discounted amount for Prime customers
+        double displayAmount = totalAmount;
+        Label laDiscount = null;
+        if (customerType.equals("Prime")) {
+            displayAmount = totalAmount * 0.9; // 10% discount
+            laDiscount = new Label(String.format("Original: £%.2f  |  Prime Discount: -10%%", totalAmount));
+            laDiscount.setStyle("-fx-font-size: 12px; -fx-text-fill: #FF5722;");
+        }
+
         // Week 9: Display total amount prominently
-        Label laAmount = new Label(String.format("Total Amount: £%.2f", totalAmount));
+        // Week 10: Show discounted amount for Prime customers
+        String amountLabel = customerType.equals("Prime") ? "Final Amount: £%.2f" : "Total Amount: £%.2f";
+        Label laAmount = new Label(String.format(amountLabel, displayAmount));
         laAmount.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;");
 
         // Week 9: Payment method selection with RadioButtons
@@ -94,7 +107,13 @@ public class PaymentDialog {
         });
 
         // Week 9: Layout assembly
-        VBox root = new VBox(20, laTitle, laAmount, laPaymentMethod, vbPaymentOptions, hbButtons);
+        // Week 10: Conditionally add discount label for Prime customers
+        VBox root = new VBox(20);
+        root.getChildren().add(laTitle);
+        if (laDiscount != null) { // Week 10: Show discount info for Prime customers
+            root.getChildren().add(laDiscount);
+        }
+        root.getChildren().addAll(laAmount, laPaymentMethod, vbPaymentOptions, hbButtons);
         root.setAlignment(Pos.TOP_CENTER);
         root.setPadding(new Insets(20));
         root.setStyle("-fx-background-color: #F5F5F5; -fx-border-color: #4CAF50; " +

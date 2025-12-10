@@ -44,6 +44,9 @@ public class CustomerModel {
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
     private ArrayList<Product> searchResults = new ArrayList<>(); // Week 7: Multiple search results for flexible search
 
+    // Week 10: Customer type for different business rules (Standard, VIP, Prime)
+    private String customerType = "Standard";
+
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "Please type Product ID or Name"; // Week 7: Updated prompt for flexible search
@@ -230,8 +233,9 @@ public class CustomerModel {
                 }
                 
                 // Week 9: Show payment dialog before finalizing order
+                // Week 10: Pass customer type to show Prime discount in payment dialog
                 PaymentDialog paymentDialog = new PaymentDialog();
-                PaymentResult paymentResult = paymentDialog.show(totalAmount);
+                PaymentResult paymentResult = paymentDialog.show(totalAmount, customerType);
                 
                 // Week 9: Check if payment was confirmed
                 if (!paymentResult.isConfirmed()) {
@@ -249,15 +253,36 @@ public class CustomerModel {
                 System.out.println("Week 6 Debug: CustomerModel requesting OrderHub to create new order...");
                 
                 OrderHub orderHub =OrderHub.getOrderHub();
-                Order theOrder = orderHub.newOrder(trolley);
+                Order theOrder = orderHub.newOrder(trolley, customerType); // Week 10: Pass customer type to order
                 trolley.clear();
                 displayTaTrolley ="";
-                displayTaReceipt = String.format(
-                        "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
+                
+                // Week 10: Build receipt with customer type benefits
+                StringBuilder receiptBuilder = new StringBuilder();
+                receiptBuilder.append(String.format("Order_ID: %s\nOrdered_Date_Time: %s\n",
                         theOrder.getOrderId(),
-                        theOrder.getOrderedDateTime(),
-                        ProductListFormatter.buildString(theOrder.getProductList())
-                );
+                        theOrder.getOrderedDateTime()));
+                receiptBuilder.append(ProductListFormatter.buildString(theOrder.getProductList()));
+                
+                // Week 10: Add customer type benefits to receipt
+                if (customerType.equals("VIP")) {
+                    receiptBuilder.append("\n🌟 VIP Member Benefits:\n");
+                    receiptBuilder.append("   • No minimum order requirement\n");
+                    receiptBuilder.append("   • Fast delivery from warehouse\n"); // Week 10: In-store pickup context
+                } else if (customerType.equals("Prime")) {
+                    receiptBuilder.append("\n⭐ Prime Member Benefits:\n");
+                    receiptBuilder.append("   • No minimum order requirement\n");
+                    receiptBuilder.append("   • Express delivery from warehouse\n"); // Week 10: In-store pickup context
+                    receiptBuilder.append("   • 10% discount applied\n");
+                    // Week 10: Calculate and display discounted total for Prime members
+                    double originalTotal = totalAmount;
+                    double discountedTotal = originalTotal * 0.9; // 10% discount
+                    receiptBuilder.append(String.format("   Original Total: £%.2f\n", originalTotal));
+                    receiptBuilder.append(String.format("   Final Total: £%.2f (saved £%.2f)\n", 
+                            discountedTotal, originalTotal - discountedTotal));
+                }
+                
+                displayTaReceipt = receiptBuilder.toString();
                 
                 // Week 3: Close notifier window on successful checkout
                 removeProductNotifier.closeNotifierWindow();
@@ -329,12 +354,15 @@ public class CustomerModel {
             totalPayment += p.getUnitPrice() * p.getOrderedQuantity();
         }
         
-        // Week 6: Check minimum payment rule
-        if (totalPayment < MINIMUM_PAYMENT) {
-            // Week 6: 'throw' keyword creates and throws exception object
-            // Execution stops here and exception propagates to caller (checkOut)
-            // new MinimumPaymentException(...) creates exception instance
-            throw new MinimumPaymentException(totalPayment, MINIMUM_PAYMENT);
+        // Week 10: VIP and Prime customers are exempt from minimum payment requirement (OCP)
+        if (!customerType.equals("VIP") && !customerType.equals("Prime")) {
+            // Week 6: Check minimum payment rule for Standard customers only
+            if (totalPayment < MINIMUM_PAYMENT) {
+                // Week 6: 'throw' keyword creates and throws exception object
+                // Execution stops here and exception propagates to caller (checkOut)
+                // new MinimumPaymentException(...) creates exception instance
+                throw new MinimumPaymentException(totalPayment, MINIMUM_PAYMENT);
+            }
         }
         
         // Week 6: Check excessive quantity rule
@@ -568,7 +596,14 @@ public class CustomerModel {
         else{
             imageName = "imageHolder.jpg";
         }
-        cusView.update(imageName, displayLaSearchResult, displayTaTrolley,displayTaReceipt);
+        
+        // Week 10: Add Prime discount information to trolley display
+        String trolleyDisplay = displayTaTrolley;
+        if (customerType.equals("Prime") && !trolley.isEmpty() && !displayTaTrolley.isEmpty()) {
+            trolleyDisplay = addPrimeDiscountToTrolley(displayTaTrolley);
+        }
+        
+        cusView.update(imageName, displayLaSearchResult, trolleyDisplay, displayTaReceipt);
     }
      // extra notes:
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
@@ -627,6 +662,54 @@ public class CustomerModel {
         trolley.removeIf(p -> p.getProductId().equals(productId));
         displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
+    }
+
+    // Week 10: Setter for customer type (OCP principle - extensible behavior)
+    public void setCustomerType(String customerType) {
+        this.customerType = customerType;
+        System.out.println("Week 10: Customer type changed to: " + customerType);
+        updateView(); // Week 10: Update view to reflect discount changes for Prime customers
+    }
+    
+    /**
+     * Week 10: Adds Prime discount information to trolley display
+     * Calculates 10% discount and appends it to the trolley string
+     * @param trolleyString The original trolley display string
+     * @return Modified trolley string with discount information
+     */
+    private String addPrimeDiscountToTrolley(String trolleyString) {
+        // Week 10: Calculate original total from trolley
+        double originalTotal = 0.0;
+        for (Product p : trolley) {
+            originalTotal += p.getUnitPrice() * p.getOrderedQuantity();
+        }
+        
+        // Week 10: Calculate discounted total (10% off)
+        double discountedTotal = originalTotal * 0.9;
+        double savings = originalTotal - discountedTotal;
+        
+        // Week 10: Find the "Total" line and replace it with discount info
+        String[] lines = trolleyString.split("\n");
+        StringBuilder modifiedTrolley = new StringBuilder();
+        
+        for (String line : lines) {
+            if (line.trim().startsWith("Total")) {
+                // Week 10: Replace total line with Prime discount information
+                modifiedTrolley.append(String.format(" Original Total                      £%7.2f\n", originalTotal));
+                modifiedTrolley.append(" ⭐ Prime Discount (10%)             £ -").append(String.format("%6.2f", savings)).append("\n");
+                modifiedTrolley.append("--------------------------------------------\n");
+                modifiedTrolley.append(String.format(" Final Total                         £%7.2f", discountedTotal));
+            } else {
+                modifiedTrolley.append(line).append("\n");
+            }
+        }
+        
+        return modifiedTrolley.toString().trim();
+    }
+
+    // Week 10: Getter for customer type
+    public String getCustomerType() {
+        return customerType;
     }
 
     //for test only
