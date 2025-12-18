@@ -630,7 +630,10 @@ public class CustomerModel {
             trolleyDisplay = addPrimeDiscountToTrolley(displayTaTrolley);
         }
         
-        cusView.update(imageName, displayLaSearchResult, trolleyDisplay, displayTaReceipt);
+        // Week 11: Defensive programming - null check for view (important for testing environment)
+        if (cusView != null) {
+            cusView.update(imageName, displayLaSearchResult, trolleyDisplay, displayTaReceipt);
+        }
     }
      // extra notes:
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
