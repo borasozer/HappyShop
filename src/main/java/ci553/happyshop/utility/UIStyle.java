@@ -41,22 +41,22 @@ public final class UIStyle {
     // Row 1: Customer (left) + Picker (right) - same height
     // Row 2: Warehouse (left) + OrderTracker (middle) + Exit (right) - same height
     
-    public static final int customerWinWidth = 650;  // Week 6: Wider for better UX
-    public static final int customerWinHeight = 350; // Week 6: Taller, matches picker
+    public static final int customerWinWidth = 550;  // Week 6: Wider for better UX; Week 11: Reduced for compact 9-window layout
+    public static final int customerWinHeight = 250; // Week 6: Taller, matches picker; Week 11: Reduced for compact multi-window layout
     public static final int removeProNotifierWinWidth = customerWinWidth/2 +160;
     public static final int removeProNotifierWinHeight = 230;
 
-    public static final int pickerWinWidth = 680;   // Week 6: Narrower to fit layout, matches customer height
-    public static final int pickerWinHeight = 350;  // Week 6: Same as customer for aligned row
+    public static final int pickerWinWidth = 550;   // Week 6: Matches customer width; Week 11: Aligned with customer for uniform layout (600px)
+    public static final int pickerWinHeight = 250;  // Week 6: Same as customer for aligned row; Week 11: Reduced 30% for compact multi-window layout (320 → 224)
 
-    public static final int warehouseWinWidth = 650; // Week 6: Same as customer width
-    public static final int warehouseWinHeight = 320; // Week 6: Uniform height for row 2
+    public static final int warehouseWinWidth = 550; // Week 6: Same as customer width; Week 11: Reduced to 600 for compact layout
+    public static final int warehouseWinHeight = 250; // Week 6: Uniform height for row 2; Week 11: Reduced for compact layout
 
     public static final int trackerWinWidth = 280;   // Week 6: Wider for better visibility
-    public static final int trackerWinHeight = 320;  // Week 6: Same as warehouse
+    public static final int trackerWinHeight = 250;  // Week 6: Same as warehouse
 
-    public static final int EmergencyExitWinWidth = 350; // Week 6: Wider to match row height
-    public static final int EmergencyExitWinHeight = 320; // Week 6: Same as warehouse/tracker
+    public static final int EmergencyExitWinWidth = 180; // Week 6: Wider to match row height; Week 11: Matched with Tracker for uniform layout
+    public static final int EmergencyExitWinHeight = 120; // Week 6: Same as warehouse/tracker
     
     // Warehouse dependent windows
     public static final int AlertSimWinWidth = 300;

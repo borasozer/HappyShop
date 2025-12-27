@@ -29,10 +29,13 @@ public final class WinPosManager {
     private static final double BASE_X = 10; // Initial X position
     private static final double BASE_Y = 10; // Initial Y position
     private static final double GAP = 10; // Space between windows
-    private static final double ROW_GAP = 120; // Week 6: Extra gap between rows for better separation
+    private static final double ROW_GAP = 40; // Week 6: Extra gap between rows for better separation; Week 11: Optimized for 9-window compact layout to fit screen
 
     private static double occupiedWidth = 0; // total width of all windows on current row
     private static double occupiedHeight = 0;
+    private static double currentRowHeight = 0; // Week 11: Track tallest window in current row
+    private static int windowsInCurrentRow = 0; // Week 11: Track number of windows in current row
+    private static final int MAX_WINDOWS_PER_ROW = 3; // Week 11: Force 3-column layout for compact arrangement
     private static double x = BASE_X; //x position for current window
     private static double y = BASE_Y;//y position for current window
 
@@ -43,28 +46,39 @@ public final class WinPosManager {
 
     public static void registerWindow(Stage stage, double width, double height) {
         // Case 1: Fits in current row and within screen height
+        // Week 11: Also check if row is not full (max 2 windows per row for clean layout)
         if ((occupiedWidth + width < SCREEN_WIDTH - BASE_X) &&
-                (occupiedHeight + height < SCREEN_HEIGHT - BASE_Y)) {
+                (occupiedHeight + height < SCREEN_HEIGHT - BASE_Y) &&
+                (windowsInCurrentRow < MAX_WINDOWS_PER_ROW)) {
+            
             stage.setX(x);
             stage.setY(y);
 
+            // Week 11: Track maximum height in current row
+            currentRowHeight = Math.max(currentRowHeight, height);
+            windowsInCurrentRow++; // Week 11: Count windows in this row
+            
             occupiedWidth += width + GAP;
             x += width + GAP;
         }
 
-        // Case 2: New row (horizontal overflow, but vertical space available)
+        // Case 2: New row (horizontal overflow, row full, or vertical space available)
         else if ((occupiedHeight + height < SCREEN_HEIGHT - BASE_Y)) {
-            // Week 6: Move to next row with larger gap for better separation
+            // Week 11: Add previous row's height to total before starting new row
+            occupiedHeight += currentRowHeight + ROW_GAP;
+            
+            // Week 6: Move to next row with gap for better separation
             occupiedWidth = 0;
+            windowsInCurrentRow = 1; // Week 11: Reset counter for new row
             x = BASE_X;
-            y += height + ROW_GAP; // Using ROW_GAP instead of GAP * 4
+            y = BASE_Y + occupiedHeight; // Week 11: Y position based on accumulated height
+            currentRowHeight = height; // Week 11: Reset for new row
 
             stage.setX(x);
             stage.setY(y);
 
             occupiedWidth += width + GAP;
             x += width + GAP;
-            occupiedHeight += height + GAP;
         }
 
         // Case 3: No space — fallback to fixed position (bottom-right stack)

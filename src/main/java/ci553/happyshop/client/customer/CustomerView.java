@@ -193,10 +193,10 @@ public class CustomerView  {
             }
         });
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbCustomerType, hbId, hbName, hbBtns, hbSearchResult, lvSearchResults); // Week 10: Added customer type selection
+        VBox vbSearchPage = new VBox(5, laPageTitle, hbCustomerType, hbId, hbName, hbBtns, hbSearchResult, lvSearchResults); // Week 10: Added customer type selection, Week 11: Reduced spacing for compact layout
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
-        vbSearchPage.setStyle("-fx-padding: 15px;");
+        vbSearchPage.setStyle("-fx-padding: 5px;"); // Week 11: Reduced padding for compact layout
 
         return vbSearchPage;
     }
@@ -260,7 +260,7 @@ public class CustomerView  {
 
         taTrolley = new TextArea();
         taTrolley.setEditable(false);
-        taTrolley.setPrefSize(WIDTH/2, HEIGHT-90); // Adjusted for sorting controls
+        taTrolley.setPrefSize(WIDTH/2, HEIGHT-120); // Week 11: Reduced height for compact layout (200px instead of 230px)
 
         Button btnCancel = new Button("Cancel");
         btnCancel.setStyle(UIStyle.buttonStyle);
@@ -285,14 +285,14 @@ public class CustomerView  {
         });
 
         HBox hbBtns = new HBox(10, btnCancel,btnCheckout);
-        hbBtns.setStyle("-fx-padding: 15px;");
+        hbBtns.setStyle("-fx-padding: 2px;"); // Week 11: Reduced padding for compact layout
         hbBtns.setAlignment(Pos.CENTER);
 
         // Week 5: Added sorting controls to trolley page
-        vbTrolleyPage = new VBox(15, laPageTitle, hbSortOptions, taTrolley, hbBtns);
+        vbTrolleyPage = new VBox(5, laPageTitle, hbSortOptions, taTrolley, hbBtns); // Week 11: Reduced spacing for compact layout
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
-        vbTrolleyPage.setStyle("-fx-padding: 15px;");
+        vbTrolleyPage.setStyle("-fx-padding: 5px;"); // Week 11: Reduced padding for compact layout
         return vbTrolleyPage;
     }
 
@@ -302,7 +302,7 @@ public class CustomerView  {
 
         taReceipt = new TextArea();
         taReceipt.setEditable(false);
-        taReceipt.setPrefSize(WIDTH/2, HEIGHT-50);
+        taReceipt.setPrefSize(WIDTH/2, HEIGHT-80); // Week 11: Reduced height for compact layout (240px instead of 270px)
 
         Button btnCloseReceipt = new Button("OK & Close"); //btn for closing receipt and showing trolley page
         btnCloseReceipt.setStyle(UIStyle.buttonStyle);
@@ -316,7 +316,7 @@ public class CustomerView  {
             }
         });
 
-        vbReceiptPage = new VBox(15, laPageTitle, taReceipt, btnCloseReceipt);
+        vbReceiptPage = new VBox(10, laPageTitle, taReceipt, btnCloseReceipt); // Week 11: Reduced spacing for compact layout
         vbReceiptPage.setPrefWidth(COLUMN_WIDTH);
         vbReceiptPage.setAlignment(Pos.TOP_CENTER);
         vbReceiptPage.setStyle(UIStyle.rootStyleYellow);

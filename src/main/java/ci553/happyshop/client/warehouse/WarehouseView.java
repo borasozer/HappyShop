@@ -195,11 +195,11 @@ public class WarehouseView  {
         // data, an observable ArrayList, observed by obrLvProducts
         obeProductList = FXCollections.observableArrayList();
         obrLvProducts = new ListView<>(obeProductList);//ListView proListView observes proList
-        obrLvProducts.setPrefHeight(HEIGHT - 100);
+        obrLvProducts.setPrefHeight(HEIGHT - 130); // Week 11: Reduced height for compact layout
         obrLvProducts.setFixedCellSize(50);
         obrLvProducts.setStyle(UIStyle.listViewStyle);
 
-        VBox vbSearchResult = new VBox(5,hbLaBtns, obrLvProducts);
+        VBox vbSearchResult = new VBox(3,hbLaBtns, obrLvProducts); // Week 11: Reduced spacing for compact layout
 
         /**
          * When is setCellFactory() Needed?
@@ -239,7 +239,7 @@ public class WarehouseView  {
             }
         });
 
-        VBox vbSearchPage = new VBox(10, laTitle, hbSearch, vbSearchResult);
+        VBox vbSearchPage = new VBox(5, laTitle, hbSearch, vbSearchResult); // Week 11: Reduced spacing for compact layout
 
         vbSearchPage.setPrefWidth(COLUMN_WIDTH-10);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
@@ -265,7 +265,7 @@ public class WarehouseView  {
         vbNewProduct = createNewProductChild();
 
         // Initially set the second child (after ComboBox) to editProduct
-        VBox vbProductFormPage = new VBox(10, cbProductFormMode, vbEditProduct);
+        VBox vbProductFormPage = new VBox(5, cbProductFormMode, vbEditProduct); // Week 11: Reduced spacing for compact layout
 
         // Check selected value and place the corerect child
         //isImageNameEditable for imageChooser using a single method to differciate from edit/add product

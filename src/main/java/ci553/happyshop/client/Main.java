@@ -42,22 +42,27 @@ public class Main extends Application {
     //starts the system
     @Override
     public void start(Stage window) throws IOException {
-        // Week 6: Grid layout window initialization order
+        // Week 11: Multi-window testing layout (2 of each client except Exit) in 3-column grid
         // Note: Window positions are assigned by WinPosManager in the order they're created
         
-        // Row 1: Customer (left) + Picker (right)
-        startCustomerClient();
-        startPickerClient();
+        // Row 1: Customer #1 + Customer #2 + Tracker #1
+        startCustomerClient(); // Customer #1
+        startCustomerClient(); // Customer #2
+        startOrderTracker(); // OrderTracker #1 - Registers and receives current orderMap immediately
         
-        // Initializes the order map for the OrderHub. This must be called after starting Picker
+        // Row 2: Picker #1 + Picker #2 + Tracker #2
+        startPickerClient(); // Picker #1
+        startPickerClient(); // Picker #2
+        startOrderTracker(); // OrderTracker #2
+        
+        // Initializes the order map for the OrderHub. This must be called after starting Pickers
         // (OrderTracker can register later and still receive current state)
         initializeOrderMap();
         
-        // Row 2: Warehouse (left) + OrderTracker (middle) + Exit (right)
-        // Week 6: Start in correct visual order for proper WinPosManager positioning
-        startWarehouseClient();
-        startOrderTracker(); // Registers late but receives current orderMap immediately
-        startEmergencyExit();
+        // Row 3: Warehouse #1 + Warehouse #2 + Exit
+        startWarehouseClient(); // Warehouse #1
+        startWarehouseClient(); // Warehouse #2
+        startEmergencyExit(); // Exit button
     }
 
     /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt

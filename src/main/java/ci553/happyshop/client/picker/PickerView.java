@@ -51,15 +51,15 @@ public class PickerView  {
 
         // Week 6: Initialize ListView for orders with better sizing
         lvOrders = new ListView<>();
-        lvOrders.setPrefHeight(HEIGHT - 80);
+        lvOrders.setPrefHeight(HEIGHT - 60); // Week 11: Adjusted for compact 30% reduced height (224-60=164px)
         lvOrders.setStyle("-fx-font-size: 12px;");
         
         // Week 6: Custom ListCell for each order row
         lvOrders.setCellFactory(param -> new OrderListCell());
         
-        VBox root = new VBox(10, laTitle, lvOrders);
+        VBox root = new VBox(8, laTitle, lvOrders); // Week 11: Reduced spacing for compact layout
         root.setAlignment(Pos.TOP_CENTER);
-        root.setPadding(new Insets(15));
+        root.setPadding(new Insets(8)); // Week 11: Reduced padding for compact layout
         root.setStyle(UIStyle.rootStyleYellow);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);

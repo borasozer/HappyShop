@@ -1,0 +1,11 @@
+Order ID: 212 
+State: Collected
+CustomerType: Standard
+OrderedDateTime: 2026-01-05 10:46:50 
+ProgressingDateTime:  
+CollectedDateTime: 2026-01-06 17:23:49
+Items:
+ 0008    USB2 drive         ( 1) £   7.99
+--------------------------------------------
+ Total                               £   7.99
+
