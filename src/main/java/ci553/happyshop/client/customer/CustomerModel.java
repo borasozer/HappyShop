@@ -50,7 +50,6 @@ public class CustomerModel {
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "Please type Product ID or Name"; // Week 7: Updated prompt for flexible search
-    private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
     private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
 
     /**
@@ -164,12 +163,15 @@ public class CustomerModel {
 
     void addToTrolley(){
         if(theProduct!= null){
+            // Week 11: Get selected quantity from view
+            int quantityToAdd = cusView.getSelectedQuantity();
+            
             // Week 2: Check if product already exists in trolley to merge quantities
             boolean productFound = false;
             for (Product existingProduct : trolley) {
-                // Week 2: If same product ID found, increment quantity instead of adding duplicate
+                // Week 2: If same product ID found, increment quantity by selected amount
                 if (existingProduct.getProductId().equals(theProduct.getProductId())) {
-                    existingProduct.setOrderedQuantity(existingProduct.getOrderedQuantity() + 1);
+                    existingProduct.setOrderedQuantity(existingProduct.getOrderedQuantity() + quantityToAdd);
                     productFound = true;
                     break;
                 }
@@ -185,13 +187,16 @@ public class CustomerModel {
                     theProduct.getUnitPrice(),
                     theProduct.getStockQuantity()
                 );
+                // Week 11: Set the ordered quantity to selected amount
+                productCopy.setOrderedQuantity(quantityToAdd);
                 trolley.add(productCopy);
             }
             
             // Week 2: Sort trolley by product ID to maintain organized display
             Collections.sort(trolley);
             
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
+            // Week 11: Reset quantity field to 1 after adding
+            cusView.resetQuantity();
         }
         else{
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
@@ -267,8 +272,7 @@ public class CustomerModel {
                 // Week 9: Check if payment was confirmed
                 if (!paymentResult.isConfirmed()) {
                     System.out.println("Week 9: Payment cancelled by user. Checkout aborted.");
-                    displayTaTrolley = ProductListFormatter.buildString(trolley); // Week 9: Keep trolley intact
-                    updateView();
+                    updateView(); // Week 9: Keep trolley intact
                     return; // Week 9: Exit checkout without creating order
                 }
                 
@@ -282,7 +286,6 @@ public class CustomerModel {
                 OrderHub orderHub =OrderHub.getOrderHub();
                 Order theOrder = orderHub.newOrder(trolley, customerType); // Week 10: Pass customer type to order
                 trolley.clear();
-                displayTaTrolley ="";
                 
                 // Week 10: Build receipt with customer type benefits
                 StringBuilder receiptBuilder = new StringBuilder();
@@ -332,9 +335,6 @@ public class CustomerModel {
                     trolley.removeIf(trolleyProd -> trolleyProd.getProductId().equals(insufficientProd.getProductId()));
                 }
                 
-                // Week 3: Update trolley display after removal
-                displayTaTrolley = trolley.isEmpty() ? "" : ProductListFormatter.buildString(trolley);
-                
                 // Week 3: Show notification window with removed products information
                 removeProductNotifier.showRemovalMsg(errorMsg.toString());
                 
@@ -342,7 +342,7 @@ public class CustomerModel {
             }
         }
         else{
-            displayTaTrolley = "Your trolley is empty";
+            displayLaSearchResult = "Your trolley is empty. Please add items to checkout.";
             System.out.println("Your trolley is empty");
         }
         updateView();
@@ -430,7 +430,6 @@ public class CustomerModel {
         }
         
         // Week 6: Update trolley display after quantity adjustment
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -459,9 +458,8 @@ public class CustomerModel {
 
     void cancel(){
         trolley.clear();
-        displayTaTrolley="";
         theProduct = null; // Week 2: Clear current product reference to prevent stale data
-        displayLaSearchResult = "Please type ProductID"; // Week 2: Clear search result display
+        displayLaSearchResult = "Please type Product ID or Name"; // Week 2: Clear search result display
         
         // Week 3: Close notifier window when trolley is cancelled
         removeProductNotifier.closeNotifierWindow();
@@ -482,7 +480,6 @@ public class CustomerModel {
         // Week 5: Method reference - cleanest syntax when getter exists
         // Equivalent lambda: (p1, p2) -> p1.getProductId().compareTo(p2.getProductId())
         trolley.sort(Comparator.comparing(Product::getProductId));
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -495,7 +492,6 @@ public class CustomerModel {
         // Week 5: Method reference with comparingDouble for primitive optimization
         // Equivalent lambda: (p1, p2) -> Double.compare(p1.getUnitPrice(), p2.getUnitPrice())
         trolley.sort(Comparator.comparingDouble(Product::getUnitPrice));
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -508,7 +504,6 @@ public class CustomerModel {
         // Week 5: Method reference for String comparison
         // Equivalent lambda: (p1, p2) -> p1.getProductDescription().compareTo(p2.getProductDescription())
         trolley.sort(Comparator.comparing(Product::getProductDescription));
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -522,7 +517,6 @@ public class CustomerModel {
         // Week 5: Lambda expression - more explicit than method reference
         // Shows descending order by reversing comparison order
         trolley.sort((p1, p2) -> Double.compare(p2.getUnitPrice(), p1.getUnitPrice()));
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -540,7 +534,6 @@ public class CustomerModel {
             double total2 = p2.getUnitPrice() * p2.getOrderedQuantity();
             return Double.compare(total2, total1); // Descending order
         });
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -562,7 +555,6 @@ public class CustomerModel {
                 return Double.compare(total2, total1); // Descending order
             }
         });
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
     
@@ -624,15 +616,9 @@ public class CustomerModel {
             imageName = "imageHolder.jpg";
         }
         
-        // Week 10: Add Prime discount information to trolley display
-        String trolleyDisplay = displayTaTrolley;
-        if (customerType.equals("Prime") && !trolley.isEmpty() && !displayTaTrolley.isEmpty()) {
-            trolleyDisplay = addPrimeDiscountToTrolley(displayTaTrolley);
-        }
-        
         // Week 11: Defensive programming - null check for view (important for testing environment)
         if (cusView != null) {
-            cusView.update(imageName, displayLaSearchResult, trolleyDisplay, displayTaReceipt);
+            cusView.update(imageName, displayLaSearchResult, trolley, displayTaReceipt);
         }
     }
      // extra notes:
@@ -656,7 +642,6 @@ public class CustomerModel {
                    int newQty = product.getOrderedQuantity() + delta;
                    if (newQty > 0) {
                        product.setOrderedQuantity(newQty);
-                       displayTaTrolley = ProductListFormatter.buildString(trolley);
                        updateView();
                    } else if (newQty == 0) {
                        removeItem(productId);
@@ -666,7 +651,7 @@ public class CustomerModel {
     
     /**
      * Sets quantity of a specific product to exact value
-     * Week 5: Stream API with lambda for finding and updating
+     * Week 11: Used by interactive trolley ListView to update quantities
      */
     void setQuantity(String productId, int newQty) {
         // Week 5: Stream API with lambda for finding and updating
@@ -676,7 +661,6 @@ public class CustomerModel {
                .ifPresent(product -> {
                    if (newQty > 0) {
                        product.setOrderedQuantity(newQty);
-                       displayTaTrolley = ProductListFormatter.buildString(trolley);
                        updateView();
                    }
                });
@@ -684,13 +668,12 @@ public class CustomerModel {
     
     /**
      * Removes a specific product from trolley
-     * Week 5: removeIf with lambda expression (functional approach)
+     * Week 11: Used by interactive trolley ListView remove button
      */
     void removeItem(String productId) {
         // Week 5: removeIf with lambda expression
         // removeIf() takes Predicate<Product> (functional interface)
         trolley.removeIf(p -> p.getProductId().equals(productId));
-        displayTaTrolley = ProductListFormatter.buildString(trolley);
         updateView();
     }
 
@@ -701,42 +684,6 @@ public class CustomerModel {
         updateView(); // Week 10: Update view to reflect discount changes for Prime customers
     }
     
-    /**
-     * Week 10: Adds Prime discount information to trolley display
-     * Calculates 10% discount and appends it to the trolley string
-     * @param trolleyString The original trolley display string
-     * @return Modified trolley string with discount information
-     */
-    private String addPrimeDiscountToTrolley(String trolleyString) {
-        // Week 10: Calculate original total from trolley
-        double originalTotal = 0.0;
-        for (Product p : trolley) {
-            originalTotal += p.getUnitPrice() * p.getOrderedQuantity();
-        }
-        
-        // Week 10: Calculate discounted total (10% off)
-        double discountedTotal = originalTotal * 0.9;
-        double savings = originalTotal - discountedTotal;
-        
-        // Week 10: Find the "Total" line and replace it with discount info
-        String[] lines = trolleyString.split("\n");
-        StringBuilder modifiedTrolley = new StringBuilder();
-        
-        for (String line : lines) {
-            if (line.trim().startsWith("Total")) {
-                // Week 10: Replace total line with Prime discount information
-                modifiedTrolley.append(String.format(" Original Total                      £%7.2f\n", originalTotal));
-                modifiedTrolley.append(" ⭐ Prime Discount (10%)             £ -").append(String.format("%6.2f", savings)).append("\n");
-                modifiedTrolley.append("--------------------------------------------\n");
-                modifiedTrolley.append(String.format(" Final Total                         £%7.2f", discountedTotal));
-            } else {
-                modifiedTrolley.append(line).append("\n");
-            }
-        }
-        
-        return modifiedTrolley.toString().trim();
-    }
-
     // Week 10: Getter for customer type
     public String getCustomerType() {
         return customerType;

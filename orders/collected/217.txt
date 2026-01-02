@@ -1,0 +1,11 @@
+Order ID: 217 
+State: Collected
+CustomerType: Standard
+OrderedDateTime: 2026-01-06 17:38:09 
+ProgressingDateTime: 2026-01-06 17:38:12
+CollectedDateTime: 2026-01-06 17:38:13
+Items:
+ 0007    USB drive          ( 2) £  13.98
+--------------------------------------------
+ Total                               £  13.98
+

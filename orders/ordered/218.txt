@@ -1,0 +1,12 @@
+Order ID: 218 
+State: Ordered 
+CustomerType: Prime
+OrderedDateTime: 2026-01-08 12:59:55 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0005    Digital Camera     ( 1) £  89.99
+ 0006    MP3 player         ( 5) £  39.95
+--------------------------------------------
+ Total                               £ 129.94
+

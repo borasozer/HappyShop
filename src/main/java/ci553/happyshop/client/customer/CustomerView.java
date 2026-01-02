@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  * The CustomerView is separated into two sections by a line :
@@ -44,12 +45,14 @@ public class CustomerView  {
 
     TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
     TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
+    TextField tfQuantity; // Week 11: Quantity input field for adding products to trolley
 
     //four controllers needs updating when program going on
     private ImageView ivProduct; //image area in searchPage
     private Label lbProductInfo;//product text info in searchPage
     private ListView<Product> lvSearchResults; // Week 7: List view for multiple search results
-    private TextArea taTrolley; //in trolley Page
+    private ListView<Product> lvTrolley; // Week 11: Interactive trolley with item-level controls
+    private Label lbTrolleyTotal; // Week 11: Total price label for trolley
     private TextArea taReceipt;//in receipt page
 
     // Holds a reference to this CustomerView window for future access and management
@@ -129,6 +132,58 @@ public class CustomerView  {
         hbName.setVisible(false); // Week 7: Hidden - unified search field replaces separate name field
         hbName.setManaged(false); // Week 7: Remove from layout calculations
 
+        // Week 11: Item-level control - Quantity input with +/- buttons
+        Label laQuantity = new Label("Quantity:");
+        laQuantity.setStyle(UIStyle.labelStyle);
+        
+        Button btnDecrease = new Button("-");
+        btnDecrease.setStyle(UIStyle.buttonStyle);
+        btnDecrease.setPrefWidth(30);
+        btnDecrease.setOnAction(event -> {
+            try {
+                int currentQty = Integer.parseInt(tfQuantity.getText());
+                if (currentQty > 1) {
+                    tfQuantity.setText(String.valueOf(currentQty - 1));
+                }
+            } catch (NumberFormatException e) {
+                tfQuantity.setText("1");
+            }
+        });
+        
+        tfQuantity = new TextField("1");
+        tfQuantity.setStyle(UIStyle.textFiledStyle);
+        tfQuantity.setPrefWidth(50);
+        // Week 11: Validate numeric input only - allow empty temporarily
+        tfQuantity.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                tfQuantity.setText(oldValue);
+            }
+        });
+        // Week 11: Validate on focus lost - ensure valid quantity when user leaves field
+        tfQuantity.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) { // Focus lost
+                String text = tfQuantity.getText().trim();
+                if (text.isEmpty() || text.equals("0")) {
+                    tfQuantity.setText("1");
+                }
+            }
+        });
+        
+        Button btnIncrease = new Button("+");
+        btnIncrease.setStyle(UIStyle.buttonStyle);
+        btnIncrease.setPrefWidth(30);
+        btnIncrease.setOnAction(event -> {
+            try {
+                int currentQty = Integer.parseInt(tfQuantity.getText());
+                tfQuantity.setText(String.valueOf(currentQty + 1));
+            } catch (NumberFormatException e) {
+                tfQuantity.setText("1");
+            }
+        });
+        
+        HBox hbQuantity = new HBox(5, laQuantity, btnDecrease, tfQuantity, btnIncrease);
+        hbQuantity.setAlignment(Pos.CENTER_LEFT);
+        
         Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
         Button btnSearch = new Button("Search");
         btnSearch.setStyle(UIStyle.buttonStyle);
@@ -193,7 +248,7 @@ public class CustomerView  {
             }
         });
 
-        VBox vbSearchPage = new VBox(5, laPageTitle, hbCustomerType, hbId, hbName, hbBtns, hbSearchResult, lvSearchResults); // Week 10: Added customer type selection, Week 11: Reduced spacing for compact layout
+        VBox vbSearchPage = new VBox(5, laPageTitle, hbCustomerType, hbId, hbName, hbQuantity, hbBtns, hbSearchResult, lvSearchResults); // Week 10: Added customer type selection, Week 11: Added quantity controls and reduced spacing for compact layout
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 5px;"); // Week 11: Reduced padding for compact layout
@@ -258,9 +313,15 @@ public class CustomerView  {
         hbSortOptions.setAlignment(Pos.CENTER_LEFT);
         hbSortOptions.setStyle("-fx-padding: 5px;");
 
-        taTrolley = new TextArea();
-        taTrolley.setEditable(false);
-        taTrolley.setPrefSize(WIDTH/2, HEIGHT-120); // Week 11: Reduced height for compact layout (200px instead of 230px)
+        // Week 11: Interactive ListView for trolley with custom cell factory
+        lvTrolley = new ListView<>();
+        lvTrolley.setPrefSize(WIDTH/2, HEIGHT-150);
+        lvTrolley.setStyle("-fx-font-size: 11px;");
+        lvTrolley.setCellFactory(param -> new TrolleyItemCell());
+        
+        // Week 11: Total price label
+        lbTrolleyTotal = new Label("Total: £0.00");
+        lbTrolleyTotal.setStyle(UIStyle.labelStyle + "-fx-font-weight: bold; -fx-font-size: 14px;");
 
         Button btnCancel = new Button("Cancel");
         btnCancel.setStyle(UIStyle.buttonStyle);
@@ -284,12 +345,12 @@ public class CustomerView  {
             }
         });
 
-        HBox hbBtns = new HBox(10, btnCancel,btnCheckout);
+        HBox hbBtns = new HBox(10, btnCancel, btnCheckout);
         hbBtns.setStyle("-fx-padding: 2px;"); // Week 11: Reduced padding for compact layout
         hbBtns.setAlignment(Pos.CENTER);
 
-        // Week 5: Added sorting controls to trolley page
-        vbTrolleyPage = new VBox(5, laPageTitle, hbSortOptions, taTrolley, hbBtns); // Week 11: Reduced spacing for compact layout
+        // Week 5: Added sorting controls to trolley page, Week 11: Added interactive ListView
+        vbTrolleyPage = new VBox(5, laPageTitle, hbSortOptions, lvTrolley, lbTrolleyTotal, hbBtns);
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
         vbTrolleyPage.setStyle("-fx-padding: 5px;"); // Week 11: Reduced padding for compact layout
@@ -328,11 +389,31 @@ public class CustomerView  {
     // Each button now has its own lambda, making event handling more explicit and maintainable
 
 
-    public void update(String imageName, String searchResult, String trolley, String receipt) {
+    public void update(String imageName, String searchResult, ArrayList<Product> trolleyProducts, String receipt) {
 
         ivProduct.setImage(new Image(imageName));
         lbProductInfo.setText(searchResult);
-        taTrolley.setText(trolley);
+        
+        // Week 11: Update trolley ListView with products
+        lvTrolley.getItems().clear();
+        if (trolleyProducts != null && !trolleyProducts.isEmpty()) {
+            lvTrolley.getItems().addAll(trolleyProducts);
+            // Calculate and display total
+            double total = trolleyProducts.stream()
+                .mapToDouble(p -> p.getUnitPrice() * p.getOrderedQuantity())
+                .sum();
+            
+            // Week 10: Apply Prime discount if applicable
+            String customerType = cusController.cusModel.getCustomerType();
+            if ("Prime".equals(customerType)) {
+                double discountedTotal = total * 0.9;
+                lbTrolleyTotal.setText(String.format("Total: £%.2f (Prime -10%% = £%.2f)", total, discountedTotal));
+            } else {
+                lbTrolleyTotal.setText(String.format("Total: £%.2f", total));
+            }
+        } else {
+            lbTrolleyTotal.setText("Total: £0.00");
+        }
         
         // Week 7: Update search results list visibility based on number of results
         updateSearchResults();
@@ -378,5 +459,116 @@ public class CustomerView  {
     // Week 10: Getter for selected customer type
     public String getSelectedCustomerType() {
         return customerTypeCombo.getValue();
+    }
+    
+    // Week 11: Getter for selected quantity
+    public int getSelectedQuantity() {
+        try {
+            String text = tfQuantity.getText().trim();
+            if (text.isEmpty()) {
+                tfQuantity.setText("1");
+                return 1;
+            }
+            int qty = Integer.parseInt(text);
+            if (qty <= 0) {
+                tfQuantity.setText("1");
+                return 1;
+            }
+            return qty;
+        } catch (NumberFormatException e) {
+            tfQuantity.setText("1");
+            return 1;
+        }
+    }
+    
+    // Week 11: Reset quantity to default after adding to trolley
+    public void resetQuantity() {
+        tfQuantity.setText("1");
+    }
+    
+    /**
+     * Week 11: Custom ListCell for interactive trolley items
+     * Each item displays product info, quantity selector, and remove button
+     */
+    private class TrolleyItemCell extends ListCell<Product> {
+        private HBox hbCell;
+        private Label lbProductInfo;
+        private ComboBox<Integer> cbQuantity;
+        private Button btnRemove;
+        
+        public TrolleyItemCell() {
+            super();
+            
+            // Product info label
+            lbProductInfo = new Label();
+            lbProductInfo.setStyle("-fx-font-size: 11px;");
+            lbProductInfo.setPrefWidth(150); // Week 11: Reduced from 240 to fit all controls on screen
+            lbProductInfo.setMaxWidth(150);
+            
+            // Quantity selector (1-50)
+            cbQuantity = new ComboBox<>();
+            for (int i = 1; i <= 50; i++) {
+                cbQuantity.getItems().add(i);
+            }
+            cbQuantity.setStyle("-fx-font-size: 11px;");
+            cbQuantity.setPrefWidth(55); // Week 11: Slightly smaller for compact layout
+            
+            // Remove button
+            btnRemove = new Button("✖");
+            btnRemove.setStyle("-fx-font-size: 12px; -fx-text-fill: red; -fx-background-color: transparent; -fx-cursor: hand;");
+            btnRemove.setPrefWidth(25); // Week 11: Slightly smaller for compact layout
+            
+            hbCell = new HBox(3, lbProductInfo, cbQuantity, btnRemove); // Week 11: Reduced spacing from 5 to 3
+            hbCell.setAlignment(Pos.CENTER_LEFT);
+        }
+        
+        @Override
+        protected void updateItem(Product product, boolean empty) {
+            super.updateItem(product, empty);
+            
+            if (empty || product == null) {
+                setGraphic(null);
+                setText(null);
+            } else {
+                // Format product info - Week 11: Compact format for narrow client windows
+                String description = product.getProductDescription();
+                // Week 11: Truncate to 12 chars for compact display
+                if (description.length() > 12) {
+                    description = description.substring(0, 12) + "..";
+                }
+                String info = String.format("%s %s £%.2f", 
+                    product.getProductId(),
+                    description,
+                    product.getUnitPrice());
+                lbProductInfo.setText(info);
+                
+                // Set quantity selector
+                cbQuantity.setValue(product.getOrderedQuantity());
+                
+                // Quantity change handler
+                cbQuantity.setOnAction(event -> {
+                    Integer newQty = cbQuantity.getValue();
+                    if (newQty != null && newQty != product.getOrderedQuantity()) {
+                        try {
+                            cusController.doAction("SET_QTY:" + product.getProductId() + ":" + newQty);
+                        } catch (SQLException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                
+                // Remove button handler
+                btnRemove.setOnAction(event -> {
+                    try {
+                        cusController.doAction("REMOVE_ITEM:" + product.getProductId());
+                    } catch (SQLException | IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                
+                setGraphic(hbCell);
+                setText(null);
+            }
+        }
     }
 }
