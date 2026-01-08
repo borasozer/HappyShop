@@ -1,5 +1,6 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.utility.SoundManager;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WindowBounds;
 import javafx.geometry.Pos;
@@ -59,6 +60,7 @@ public class RemoveProductNotifier {
         Button btnOk = new Button("Ok");
         btnOk.setStyle(UIStyle.alertBtnStyle);
         btnOk.setOnAction(e -> {
+            SoundManager.playButtonClick(); // Week 12: Button click sound
             window.close();
         });
 
@@ -110,6 +112,8 @@ public class RemoveProductNotifier {
 
     // Show remove product message
     public void showRemovalMsg(String removalMsg) {
+        SoundManager.playNotification(); // Week 12: Play notification sound for alerts
+        
         if (window ==null ||!window.isShowing() ) {
             createWindow(); // create window if not exists
         }

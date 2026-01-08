@@ -3,6 +3,7 @@ module ci553.happyshop {
     requires javafx.fxml;
     requires java.sql;
     requires javafx.graphics;
+    requires javafx.media; // Week 12: For background music support
 
     opens ci553.happyshop to javafx.fxml;
     opens ci553.happyshop.client to javafx.fxml;

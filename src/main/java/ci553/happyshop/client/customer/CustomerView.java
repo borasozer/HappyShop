@@ -1,6 +1,7 @@
 package ci553.happyshop.client.customer;
 
 import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.utility.SoundManager;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
@@ -14,6 +15,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -58,6 +61,11 @@ public class CustomerView  {
     // Holds a reference to this CustomerView window for future access and management
     // (e.g., positioning the removeProductNotifier when needed).
     private Stage viewWindow;
+    
+    // Week 12: Background music for enhanced user experience
+    private MediaPlayer backgroundMusicPlayer;
+    private Button btnMusicToggle;
+    private boolean isMusicPlaying = false;
 
     public void start(Stage window) {
         VBox vbSearchPage = createSearchPage();
@@ -76,12 +84,27 @@ public class CustomerView  {
         hbRoot.setAlignment(Pos.CENTER);
         hbRoot.setStyle(UIStyle.rootStyle);
 
-        Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
+        // Week 12: Create music toggle button for top-right corner
+        btnMusicToggle = new Button("🔊");
+        btnMusicToggle.setStyle("-fx-font-size: 18px; -fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 2px;");
+        btnMusicToggle.setTooltip(new Tooltip("Toggle Background Music"));
+        btnMusicToggle.setOnAction(event -> toggleMusic());
+        
+        // Week 12: Position button in top-right using StackPane (moved higher up)
+        StackPane rootWithMusic = new StackPane(hbRoot, btnMusicToggle);
+        StackPane.setAlignment(btnMusicToggle, Pos.TOP_RIGHT);
+        StackPane.setMargin(btnMusicToggle, new javafx.geometry.Insets(2, 3, 0, 0)); // Week 12: Reduced margin for higher position
+
+        Scene scene = new Scene(rootWithMusic, WIDTH, HEIGHT);
         window.setScene(scene);
         window.setTitle("🛒 HappyShop Customer Client");
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
         window.show();
         viewWindow=window;// Sets viewWindow to this window for future reference and management.
+        
+        // Week 12: Initialize sound effects and background music
+        SoundManager.initialize();
+        initializeBackgroundMusic();
     }
 
     // Week 10: Customer type selection for different business rules and benefits
@@ -189,6 +212,7 @@ public class CustomerView  {
         btnSearch.setStyle(UIStyle.buttonStyle);
         // Week 5: Lambda expression for event handling - cleaner than method reference for simple actions
         btnSearch.setOnAction(event -> {
+            SoundManager.playButtonClick(); // Week 12: Button click sound
             try {
                 cusController.doAction("Search");
             } catch (SQLException | IOException e) {
@@ -200,6 +224,7 @@ public class CustomerView  {
         btnAddToTrolley.setStyle(UIStyle.buttonStyle);
         // Week 5: Lambda expression ensures trolley page is shown before adding
         btnAddToTrolley.setOnAction(event -> {
+            SoundManager.playButtonClick(); // Week 12: Button click sound
             try {
                 showTrolleyOrReceiptPage(vbTrolleyPage); // Ensure trolley page shows
                 cusController.doAction("Add to Trolley");
@@ -327,6 +352,7 @@ public class CustomerView  {
         btnCancel.setStyle(UIStyle.buttonStyle);
         // Week 5: Lambda expression for cancel action
         btnCancel.setOnAction(event -> {
+            SoundManager.playButtonClick(); // Week 12: Button click sound
             try {
                 cusController.doAction("Cancel");
             } catch (SQLException | IOException e) {
@@ -338,6 +364,7 @@ public class CustomerView  {
         btnCheckout.setStyle(UIStyle.buttonStyle);
         // Week 5: Lambda expression for checkout action
         btnCheckout.setOnAction(event -> {
+            SoundManager.playCheckout(); // Week 12: Special checkout sound
             try {
                 cusController.doAction("Check Out");
             } catch (SQLException | IOException e) {
@@ -369,6 +396,7 @@ public class CustomerView  {
         btnCloseReceipt.setStyle(UIStyle.buttonStyle);
         // Week 5: Lambda expression for closing receipt and returning to trolley
         btnCloseReceipt.setOnAction(event -> {
+            SoundManager.playButtonClick(); // Week 12: Button click sound
             try {
                 showTrolleyOrReceiptPage(vbTrolleyPage);
                 cusController.doAction("OK & Close");
@@ -569,6 +597,61 @@ public class CustomerView  {
                 setGraphic(hbCell);
                 setText(null);
             }
+        }
+    }
+    
+    /**
+     * Week 12: Initialize background music player
+     * Loads music file and sets it to loop indefinitely
+     * Auto-starts music if file is available
+     */
+    private void initializeBackgroundMusic() {
+        try {
+            // Week 12: Try to load background music from resources
+            String musicFile = getClass().getResource("/background_music.mp3").toExternalForm();
+            Media media = new Media(musicFile);
+            backgroundMusicPlayer = new MediaPlayer(media);
+            
+            // Week 12: Set music to loop indefinitely
+            backgroundMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            backgroundMusicPlayer.setVolume(0.3); // 30% volume for pleasant background music
+            
+            // Week 12: Auto-start music on launch
+            backgroundMusicPlayer.play();
+            isMusicPlaying = true;
+            btnMusicToggle.setText("🔊");
+            
+            System.out.println("Week 12: Background music loaded and playing automatically");
+        } catch (Exception e) {
+            System.out.println("Week 12: Background music file not found. Music feature disabled.");
+            System.out.println("Please add 'background_music.mp3' to src/main/resources/");
+            btnMusicToggle.setDisable(true);
+            btnMusicToggle.setOpacity(0.3);
+            btnMusicToggle.setText("🔇");
+        }
+    }
+    
+    /**
+     * Week 12: Toggle background music on/off
+     * Changes button icon to reflect current state
+     */
+    private void toggleMusic() {
+        if (backgroundMusicPlayer == null) {
+            return; // Music not available
+        }
+        
+        if (isMusicPlaying) {
+            // Week 12: Stop music
+            backgroundMusicPlayer.pause();
+            btnMusicToggle.setText("🔇");
+            isMusicPlaying = false;
+            System.out.println("Week 12: Background music paused");
+        } else {
+            // Week 12: Start music
+            backgroundMusicPlayer.play();
+            btnMusicToggle.setText("🔊");
+            isMusicPlaying = true;
+            System.out.println("Week 12: Background music playing");
         }
     }
 }

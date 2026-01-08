@@ -1,0 +1,11 @@
+Order ID: 220 
+State: Ordered 
+CustomerType: VIP
+OrderedDateTime: 2026-01-08 15:48:11 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0005    Digital Camera     ( 4) £ 359.96
+--------------------------------------------
+ Total                               £ 359.96
+

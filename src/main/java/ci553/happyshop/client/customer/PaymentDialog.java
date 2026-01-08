@@ -1,6 +1,7 @@
 package ci553.happyshop.client.customer;
 
 import ci553.happyshop.catalogue.PaymentMethod;
+import ci553.happyshop.utility.SoundManager;
 import ci553.happyshop.utility.UIStyle;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -93,6 +94,7 @@ public class PaymentDialog {
 
         // Week 9: Lambda expressions for button actions
         btnConfirm.setOnAction(event -> {
+            SoundManager.playCheckout(); // Week 12: Payment confirmation sound
             // Week 9: Determine selected payment method
             PaymentMethod selectedMethod = rbCard.isSelected() ? 
                 PaymentMethod.CREDIT_CARD : PaymentMethod.CASH;
@@ -102,6 +104,7 @@ public class PaymentDialog {
         });
 
         btnCancel.setOnAction(event -> {
+            SoundManager.playButtonClick(); // Week 12: Button click sound
             result = PaymentResult.cancelled(); // Week 9: User cancelled payment
             dialogStage.close();
         });
