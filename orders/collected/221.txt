@@ -1,0 +1,13 @@
+Order ID: 221 
+State: Collected
+CustomerType: Standard
+OrderedDateTime: 2026-01-08 16:15:57 
+ProgressingDateTime:  
+CollectedDateTime: 2026-01-08 16:16:11
+Items:
+ 0008    USB2 drive         (10) £  79.90
+ 0009    USB3 drive         ( 1) £   8.99
+ 0004    Watch              ( 5) £ 149.95
+--------------------------------------------
+ Total                               £ 238.84
+

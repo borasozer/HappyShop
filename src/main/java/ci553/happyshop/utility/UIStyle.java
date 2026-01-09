@@ -134,4 +134,32 @@ public final class UIStyle {
     public static final String alertContentUserActionStyle = "-fx-font-size: 14px;" +
             "-fx-font-weight: normal; -fx-text-fill: green;";
 
+    // Week 12: Dark Theme Styles for Customer Interface
+    public static final String darkRootStyle = "-fx-padding: 8px; " +
+            "-fx-background-color: #2b2b2b";
+    
+    public static final String darkLabelTitleStyle = "-fx-font-weight: bold; " +
+            "-fx-font-size: 16px; -fx-text-fill: #bb86fc;";
+    
+    public static final String darkLabelStyle = "-fx-font-weight: bold; " +
+            "-fx-font-size: 14px; " +
+            "-fx-text-fill: #e0e0e0; " +
+            "-fx-background-color: #424242;";
+    
+    public static final String darkButtonStyle = "-fx-font-size: 15; " +
+            "-fx-background-color: #424242; " +
+            "-fx-text-fill: #e0e0e0;";
+    
+    public static final String darkTextFieldStyle = "-fx-font-size: 16; " +
+            "-fx-background-color: #3c3c3c; " +
+            "-fx-text-fill: #e0e0e0; " +
+            "-fx-control-inner-background: #3c3c3c;";
+    
+    public static final String darkLabelMulLineStyle = "-fx-font-size: 16px; " +
+            "-fx-background-color: #424242; " +
+            "-fx-text-fill: #e0e0e0;";
+    
+    public static final String darkRootStyleYellow = "-fx-padding: 8px; " +
+            "-fx-background-color: #3c3c3c";
+
 }

@@ -1,8 +1,8 @@
 Order ID: 218 
-State: Ordered 
+State: Ordered
 CustomerType: Prime
 OrderedDateTime: 2026-01-08 12:59:55 
-ProgressingDateTime:  
+ProgressingDateTime: 2026-01-08 16:17:36
 CollectedDateTime: 
 Items:
  0005    Digital Camera     ( 1) £  89.99

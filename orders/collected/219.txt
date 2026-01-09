@@ -1,9 +1,9 @@
 Order ID: 219 
-State: Progressing
+State: Collected
 CustomerType: VIP
 OrderedDateTime: 2026-01-08 13:00:20 
 ProgressingDateTime: 2026-01-08 13:00:26
-CollectedDateTime: 
+CollectedDateTime: 2026-01-08 16:16:08
 Items:
  0006    MP3 player         ( 1) £   7.99
 --------------------------------------------

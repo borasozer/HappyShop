@@ -66,6 +66,10 @@ public class CustomerView  {
     private MediaPlayer backgroundMusicPlayer;
     private Button btnMusicToggle;
     private boolean isMusicPlaying = false;
+    
+    // Week 12: Dark theme support
+    private Button btnThemeToggle;
+    private boolean isDarkTheme = false;
 
     public void start(Stage window) {
         VBox vbSearchPage = createSearchPage();
@@ -84,18 +88,30 @@ public class CustomerView  {
         hbRoot.setAlignment(Pos.CENTER);
         hbRoot.setStyle(UIStyle.rootStyle);
 
+        // Week 12: Create theme toggle button for top-left corner
+        btnThemeToggle = new Button("🌙");
+        btnThemeToggle.setStyle("-fx-font-size: 16px; -fx-background-color: rgba(255,255,255,0.7); " +
+                "-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5; " +
+                "-fx-cursor: hand; -fx-padding: 3px 6px;");
+        btnThemeToggle.setTooltip(new Tooltip("Toggle Dark Theme"));
+        btnThemeToggle.setOnAction(event -> toggleTheme());
+        
         // Week 12: Create music toggle button for top-right corner
         btnMusicToggle = new Button("🔊");
-        btnMusicToggle.setStyle("-fx-font-size: 18px; -fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 2px;");
+        btnMusicToggle.setStyle("-fx-font-size: 18px; -fx-background-color: rgba(255,255,255,0.7); " +
+                "-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5; " +
+                "-fx-cursor: hand; -fx-padding: 3px 6px;");
         btnMusicToggle.setTooltip(new Tooltip("Toggle Background Music"));
         btnMusicToggle.setOnAction(event -> toggleMusic());
         
-        // Week 12: Position button in top-right using StackPane (moved higher up)
-        StackPane rootWithMusic = new StackPane(hbRoot, btnMusicToggle);
+        // Week 12: Position buttons using StackPane - theme (left) and music (right)
+        StackPane rootWithButtons = new StackPane(hbRoot, btnThemeToggle, btnMusicToggle);
+        StackPane.setAlignment(btnThemeToggle, Pos.TOP_LEFT);
         StackPane.setAlignment(btnMusicToggle, Pos.TOP_RIGHT);
-        StackPane.setMargin(btnMusicToggle, new javafx.geometry.Insets(2, 3, 0, 0)); // Week 12: Reduced margin for higher position
+        StackPane.setMargin(btnThemeToggle, new javafx.geometry.Insets(2, 0, 0, 3)); // Week 12: Top-left position
+        StackPane.setMargin(btnMusicToggle, new javafx.geometry.Insets(2, 3, 0, 0)); // Week 12: Top-right position
 
-        Scene scene = new Scene(rootWithMusic, WIDTH, HEIGHT);
+        Scene scene = new Scene(rootWithButtons, WIDTH, HEIGHT);
         window.setScene(scene);
         window.setTitle("🛒 HappyShop Customer Client");
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
@@ -557,6 +573,9 @@ public class CustomerView  {
             if (empty || product == null) {
                 setGraphic(null);
                 setText(null);
+                // Week 12: Clear event handlers to prevent memory leaks and duplicate events
+                cbQuantity.setOnAction(null);
+                btnRemove.setOnAction(null);
             } else {
                 // Format product info - Week 11: Compact format for narrow client windows
                 String description = product.getProductDescription();
@@ -570,25 +589,35 @@ public class CustomerView  {
                     product.getUnitPrice());
                 lbProductInfo.setText(info);
                 
+                // Week 12: Clear old handler first to prevent duplicate events
+                cbQuantity.setOnAction(null);
+                
                 // Set quantity selector
                 cbQuantity.setValue(product.getOrderedQuantity());
+                
+                // Week 12: Capture product ID in final variable for lambda
+                final String productId = product.getProductId();
+                final int currentQty = product.getOrderedQuantity();
                 
                 // Quantity change handler
                 cbQuantity.setOnAction(event -> {
                     Integer newQty = cbQuantity.getValue();
-                    if (newQty != null && newQty != product.getOrderedQuantity()) {
+                    if (newQty != null && newQty != currentQty) {
                         try {
-                            cusController.doAction("SET_QTY:" + product.getProductId() + ":" + newQty);
+                            cusController.doAction("SET_QTY:" + productId + ":" + newQty);
                         } catch (SQLException | IOException e) {
                             e.printStackTrace();
                         }
                     }
                 });
                 
+                // Week 12: Clear old handler first
+                btnRemove.setOnAction(null);
+                
                 // Remove button handler
                 btnRemove.setOnAction(event -> {
                     try {
-                        cusController.doAction("REMOVE_ITEM:" + product.getProductId());
+                        cusController.doAction("REMOVE_ITEM:" + productId);
                     } catch (SQLException | IOException e) {
                         e.printStackTrace();
                     }
@@ -626,8 +655,12 @@ public class CustomerView  {
             System.out.println("Week 12: Background music file not found. Music feature disabled.");
             System.out.println("Please add 'background_music.mp3' to src/main/resources/");
             btnMusicToggle.setDisable(true);
-            btnMusicToggle.setOpacity(0.3);
+            btnMusicToggle.setOpacity(0.5);
             btnMusicToggle.setText("🔇");
+            // Week 12: Keep button visible even when disabled
+            btnMusicToggle.setStyle("-fx-font-size: 18px; -fx-background-color: rgba(200,200,200,0.5); " +
+                    "-fx-border-color: #999; -fx-border-radius: 5; -fx-background-radius: 5; " +
+                    "-fx-cursor: not-allowed; -fx-padding: 3px 6px;");
         }
     }
     
@@ -652,6 +685,138 @@ public class CustomerView  {
             btnMusicToggle.setText("🔊");
             isMusicPlaying = true;
             System.out.println("Week 12: Background music playing");
+        }
+    }
+    
+    /**
+     * Week 12: Toggle between light and dark theme
+     * Applies theme-specific styles to all UI elements
+     */
+    private void toggleTheme() {
+        SoundManager.playButtonClick(); // Week 12: Button click sound
+        isDarkTheme = !isDarkTheme;
+        
+        if (isDarkTheme) {
+            // Week 12: Apply dark theme
+            btnThemeToggle.setText("☀️");
+            btnThemeToggle.setStyle("-fx-font-size: 16px; -fx-background-color: rgba(66,66,66,0.9); " +
+                    "-fx-text-fill: #ffd700; -fx-border-color: #666; -fx-border-radius: 5; " +
+                    "-fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 3px 6px;");
+            btnThemeToggle.setTooltip(new Tooltip("Switch to Light Theme"));
+            applyDarkTheme();
+            System.out.println("Week 12: Dark theme activated");
+        } else {
+            // Week 12: Apply light theme
+            btnThemeToggle.setText("🌙");
+            btnThemeToggle.setStyle("-fx-font-size: 16px; -fx-background-color: rgba(255,255,255,0.7); " +
+                    "-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5; " +
+                    "-fx-cursor: hand; -fx-padding: 3px 6px;");
+            btnThemeToggle.setTooltip(new Tooltip("Switch to Dark Theme"));
+            applyLightTheme();
+            System.out.println("Week 12: Light theme activated");
+        }
+    }
+    
+    /**
+     * Week 12: Apply dark theme styles to all UI elements
+     */
+    private void applyDarkTheme() {
+        // Root background
+        hbRoot.setStyle(UIStyle.darkRootStyle);
+        
+        // Update music toggle button for dark theme
+        btnMusicToggle.setStyle("-fx-font-size: 18px; -fx-background-color: rgba(66,66,66,0.9); " +
+                "-fx-text-fill: white; -fx-border-color: #666; -fx-border-radius: 5; " +
+                "-fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 3px 6px;");
+        
+        // Search page elements
+        VBox vbSearchPage = (VBox) hbRoot.getChildren().get(0);
+        vbSearchPage.setStyle("-fx-padding: 5px; -fx-background-color: #2b2b2b;");
+        updateNodeStyles(vbSearchPage, true);
+        
+        // Trolley page elements
+        vbTrolleyPage.setStyle("-fx-padding: 5px; -fx-background-color: #2b2b2b;");
+        updateNodeStyles(vbTrolleyPage, true);
+        
+        // Receipt page elements
+        vbReceiptPage.setStyle(UIStyle.darkRootStyleYellow);
+        updateNodeStyles(vbReceiptPage, true);
+    }
+    
+    /**
+     * Week 12: Apply light theme styles to all UI elements
+     */
+    private void applyLightTheme() {
+        // Root background
+        hbRoot.setStyle(UIStyle.rootStyle);
+        
+        // Update music toggle button for light theme
+        btnMusicToggle.setStyle("-fx-font-size: 18px; -fx-background-color: rgba(255,255,255,0.7); " +
+                "-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-radius: 5; " +
+                "-fx-cursor: hand; -fx-padding: 3px 6px;");
+        
+        // Search page elements
+        VBox vbSearchPage = (VBox) hbRoot.getChildren().get(0);
+        vbSearchPage.setStyle("-fx-padding: 5px;");
+        updateNodeStyles(vbSearchPage, false);
+        
+        // Trolley page elements
+        vbTrolleyPage.setStyle("-fx-padding: 5px;");
+        updateNodeStyles(vbTrolleyPage, false);
+        
+        // Receipt page elements
+        vbReceiptPage.setStyle(UIStyle.rootStyleYellow);
+        updateNodeStyles(vbReceiptPage, false);
+    }
+    
+    /**
+     * Week 12: Recursively update styles of UI nodes
+     * @param node The node to update
+     * @param isDark True for dark theme, false for light theme
+     */
+    private void updateNodeStyles(javafx.scene.Node node, boolean isDark) {
+        if (node instanceof Label) {
+            Label label = (Label) node;
+            String currentStyle = label.getStyle();
+            // Check if it's a title label
+            if (currentStyle.contains("16px")) {
+                label.setStyle(isDark ? UIStyle.darkLabelTitleStyle : UIStyle.labelTitleStyle);
+            } else if (currentStyle.contains("lightblue") || currentStyle.contains("#424242")) {
+                label.setStyle(isDark ? UIStyle.darkLabelStyle : UIStyle.labelStyle);
+            } else if (currentStyle.contains("lightpink") || currentStyle.contains("#424242")) {
+                label.setStyle(isDark ? UIStyle.darkLabelMulLineStyle : UIStyle.labelMulLineStyle);
+            }
+        } else if (node instanceof TextField) {
+            TextField tf = (TextField) node;
+            tf.setStyle(isDark ? UIStyle.darkTextFieldStyle : UIStyle.textFiledStyle);
+        } else if (node instanceof Button) {
+            Button btn = (Button) node;
+            // Don't change theme/music toggle buttons or special styled buttons
+            String currentStyle = btn.getStyle();
+            if (!currentStyle.contains("rgba") && !currentStyle.contains("background-color: #4CAF50") 
+                && !currentStyle.contains("background-color: green") && !currentStyle.contains("background-color: red")) {
+                btn.setStyle(isDark ? UIStyle.darkButtonStyle : UIStyle.buttonStyle);
+            }
+        } else if (node instanceof TextArea) {
+            TextArea ta = (TextArea) node;
+            if (isDark) {
+                ta.setStyle("-fx-control-inner-background: #3c3c3c; -fx-text-fill: #e0e0e0;");
+            } else {
+                ta.setStyle("");
+            }
+        } else if (node instanceof ListView) {
+            ListView<?> lv = (ListView<?>) node;
+            if (isDark) {
+                lv.setStyle("-fx-background-color: #3c3c3c; -fx-control-inner-background: #3c3c3c;");
+            } else {
+                lv.setStyle("-fx-font-size: 11px;");
+            }
+        } else if (node instanceof javafx.scene.layout.Pane) {
+            // Recursively update children
+            javafx.scene.layout.Pane pane = (javafx.scene.layout.Pane) node;
+            for (javafx.scene.Node child : pane.getChildren()) {
+                updateNodeStyles(child, isDark);
+            }
         }
     }
 }
